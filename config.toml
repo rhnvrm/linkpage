@@ -1,0 +1,9 @@
+http_address="localhost:8000"
+read_timeout="3s"
+write_timeout="3s"
+static_dir="static"
+dbfile="app.db"
+
+page_logo_url="https://cdn.campsite.bio/zerodha/f2a1839c-db97-480d-949b-005c74a490f0.jpg"
+page_title="Zerodha"
+page_intro="Your friendly neighbourhood broker, helping 3+ million Indians invest."

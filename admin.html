@@ -1,0 +1,65 @@
+<!doctype html>
+<html> 
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>{{.Title}}</title>
+        <meta name="description" content="{{.Intro}}">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="static/css/normalize.css">
+        <link rel="stylesheet" href="static/css/skeleton.css">
+        <link rel="stylesheet" href="static/css/custom.css">
+    </head>
+    <body>
+        <div class="container">
+            <section class="header">
+                <img width="100px" src="{{.LogoURL}}">
+                <h3>{{.Title}}</h3>
+                <h5>{{.Intro}}</h5>
+            </section>
+            {{ range .Links }}
+ 
+            <div class="stats">
+                <a href="/admin/links/{{.ID}}/weight?action=up">Up</a> 
+                <a href="/admin/links/{{.ID}}/weight?action=down">Down</a> 
+                <a href="/admin/links/{{.ID}}/delete">Delete</a> 
+            </div>               
+            <div class="row link">
+
+                <a href="{{.URL}}">
+                <div class="two columns">
+                    <img width="100%" src="{{.ImageURL}}">
+                </div>
+                <div class="ten columns">
+                    <span class="text">
+                        {{ .Text }}
+                    </span>
+                </div>
+                </a>
+            </div>
+
+            <div class="stats">
+                <div>
+                    Hits: {{.Hits}} | Weight: {{.Weight}}
+                </div>
+            </div>
+            {{ end }}
+
+            <hr>
+            <h5>New Link</h5>
+            <form action="/admin/links/new" method="POST">
+                <label for="text">Text</label>
+                <input class="u-full-width" type="text" name="text"><br>    
+
+                <label for="url">URL</label>
+                <input class="u-full-width" type="url" name="url"><br>    
+                
+                <label for="image_url">Image URL</label>
+                <input class="u-full-width"  type="url" name="image_url"><br>
+
+                
+                <input type="submit" type="submit" value="Submit">
+            </form>
+        </div>
+    </body>
+</html>

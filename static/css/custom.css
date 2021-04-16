@@ -1,0 +1,22 @@
+.container {
+  max-width: 800px;
+}
+.header {
+  margin-top: 6rem;
+  text-align: center;
+}
+.link {
+  margin-top: 10px;
+  background: #4361d8;
+  border: 1px solid #7d93e8;
+  border-radius: 3px;
+  color: #fff;
+  height: 100px;
+  text-align: center;
+}
+.link a {
+  color: #fff;
+}
+.text {
+  line-height: 100px;
+}
