@@ -26,8 +26,10 @@ body {
   color: #fff;
 }
 .text {
-  line-height: 100px;
   font-size: 16px;
+  padding: 20px;
+  text-align: center;
+  width: 100%;
 }
 .thumbnail {
   width: 100px;
@@ -50,4 +52,14 @@ body {
 .error {
   font-weight: bold;
   color: red;
+}
+
+.data {
+  display: flex;
+  width: 100%;
+}
+
+.row a {
+  display: flex;
+  text-decoration: none;
 }

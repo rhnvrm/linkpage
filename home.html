@@ -25,13 +25,11 @@
             <div class="row link">
                 <a href="{{.URL}}" ping="/hits/{{.ID}}">
                 {{if .ImageURL}}
-                <div class="two columns">
+                <div class="thumb">
                     <img class="thumbnail" src="{{.ImageURL}}">
                 </div>
-                <div class="ten columns">
-                {{ else }}
-                <div class="twelve columns">
                 {{end}}
+                <div class="data">
                     <span class="text">
                         {{ .Text }}
                     </span>
