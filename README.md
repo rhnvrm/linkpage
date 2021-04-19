@@ -1,11 +1,26 @@
-# linkpage
+# LinkPage [![Zerodha Tech](https://zerodha.tech/static/images/github-badge.svg)](https://zerodha.tech) 
 
 LinkPage is a FOSS Selfhosted alternative to link listing websites.
 
+## Features
+
+- Self hostable and open source
+- Responsive and customizable design
+- Admin panel with custom link ordering
+- Fetch details (thumbnail, description) directly from the link using OpenGraph tags
+- Zero JavaScript with cached templating for homepage
+- Simple sqlite3 setup for getting started instantly
+- Basic Auth for admin endpoints
+
 ## Demo
 
-![demo](static/demo.png)
-![demo_admin](static/demo_admin.png)
+### Home 
+
+<img src="static/demo.png" height="400" >
+
+### Admin
+
+<img src="static/demo_admin.png" height="400" >
 
 ## Developer Setup
 
