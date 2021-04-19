@@ -13,7 +13,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
     </head>
     <body>
-        <div class="container">
+        <div class="container admin">
             <section class="header">
                 <a href="/">
                     <img width="100px" src="{{.LogoURL}}">
@@ -21,6 +21,9 @@
                 <h3>{{.Title}}</h3>
                 <h5>{{.Intro}}</h5>
             </section>
+
+            <span class="error">{{.Error}}</span>
+
             {{ range .Links }}
  
             <div class="stats">
@@ -32,28 +35,35 @@
                 </div>
             </div>               
             <div class="row link">
-                <a href="{{.URL}}">
+                {{if .ImageURL}}
                 <div class="two columns">
                     <img class="thumbnail" src="{{.ImageURL}}">
                 </div>
                 <div class="ten columns">
+                {{ else }}
+                <div class="twelve columns">
+                {{end}}
                     <span class="text">
-                        {{ .Text }}
+                        {{.Text}}
                     </span>
                 </div>
-                </a>
             </div>
+            <form action="/admin/links/{{.ID}}/update" action="POST">
+                <input class="u-full-width" name="text" value="{{ .Text }}" type="text"><br>
+                <input class="u-full-width" name="url" value="{{ .URL }}" type="text"><br>
+                <input class="u-full-width" name="image_url" value="{{ .ImageURL }}" type="text"><br>
 
-
+                <input class="u-full-width" type="submit" type="submit" value="Update">
+            </form>
             {{ end }}
 
             <hr>
             <h5>New Link</h5>
             <form action="/admin/links/new" method="POST">
-                <label for="text">Text</label>
+                <label for="text">Text*</label>
                 <input class="u-full-width" type="text" name="text"><br>    
 
-                <label for="url">URL</label>
+                <label for="url">URL*</label>
                 <input class="u-full-width" type="url" name="url"><br>    
                 
                 <label for="image_url">Image URL</label>

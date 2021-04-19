@@ -17,6 +17,7 @@ import (
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/providers/file"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/otiai10/opengraph/v2"
 	"github.com/urfave/negroni"
 )
 
@@ -75,6 +76,7 @@ type Page struct {
 	Title   string
 	Intro   string
 	Links   []Link
+	Error   string
 }
 
 type cachedTemplate struct {
@@ -144,9 +146,13 @@ func (l *LinkDB) UpdateWeight(id int, action string) error {
 		return fmt.Errorf("unsupported action: %s", action)
 	}
 
-	_, err := l.db.Exec("UPDATE links set weight = weight " + queryAction + " where link_id = " + strconv.Itoa(id) + ";")
+	res, err := l.db.Exec("UPDATE links set weight = weight " + queryAction + " where link_id = " + strconv.Itoa(id) + ";")
 	if err != nil {
 		return err
+	}
+
+	if c, _ := res.RowsAffected(); c == 0 {
+		return fmt.Errorf("item not found: %d", id)
 	}
 
 	return nil
@@ -156,6 +162,17 @@ func (l *LinkDB) InsertLink(text, url, imageURL string) error {
 	query := `INSERT INTO links (message, url, image_url) VALUES (?, ?, ?);`
 
 	_, err := l.db.Exec(query, text, url, imageURL)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (l *LinkDB) UpdateLink(id int, text, url, image string) error {
+	query := `UPDATE links SET message=?, url=?, image_url=? WHERE link_id=?;`
+
+	_, err := l.db.Exec(query, text, url, image, id)
 	if err != nil {
 		return err
 	}
@@ -203,6 +220,11 @@ func initConfig(configFile string) Config {
 func writeInternalServerErr(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Write([]byte("500 - Internal Server Error!"))
+}
+
+func writeBadRequest(w http.ResponseWriter, message string) {
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write([]byte("400 - " + message))
 }
 
 func basicAuth(cfg Config) negroni.HandlerFunc {
@@ -260,39 +282,49 @@ func main() {
 	r.HandleFunc("/hits/{id}", func(w http.ResponseWriter, r *http.Request) {
 		rawID, ok := mux.Vars(r)["id"]
 		if !ok {
-			// TODO handle err
-			log.Println("id missing")
-			writeInternalServerErr(w)
+			writeBadRequest(w, "id missing")
 			return
 		}
 
 		id, err := strconv.Atoi(rawID)
 		if err != nil {
-			// TODO handle error
 			log.Printf("error while getting links: %v", err)
-			writeInternalServerErr(w)
+			writeBadRequest(w, "bad id, got "+rawID)
 			return
 		}
 
 		if err := app.DB.IncrementHit(id); err != nil {
 			log.Printf("error while incrementing hits: %v", err)
+			writeInternalServerErr(w)
+			return
 		}
 	})
 
+	renderAdminPage := func(data Page) func(w http.ResponseWriter, r *http.Request) {
+		return func(w http.ResponseWriter, r *http.Request) {
+			if err := app.Templates.Admin.Execute(w, data); err != nil {
+				log.Printf("error while writing template: %v", err)
+				writeInternalServerErr(w)
+				return
+			}
+		}
+	}
+
+	renderAdminPageWithErrMessage := func(msg string, p Page) func(w http.ResponseWriter, r *http.Request) {
+		p.Error = msg
+		return renderAdminPage(p)
+	}
+
 	admin.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		app.UpdateLinks()
-		if err := app.Templates.Admin.Execute(w, app.Data); err != nil {
-			log.Printf("error while writing template: %v", err)
-			writeInternalServerErr(w)
-		}
+		renderAdminPage(app.Data)(w, r)
 	})
 
 	admin.HandleFunc("/links/{id}/weight", func(w http.ResponseWriter, r *http.Request) {
 		keys, ok := r.URL.Query()["action"]
 
 		if !ok || len(keys[0]) < 1 {
-			log.Println("Url Param 'action' is missing")
-			writeInternalServerErr(w)
+			renderAdminPageWithErrMessage("action is missing", app.Data)(w, r)
 			return
 		}
 
@@ -300,67 +332,109 @@ func main() {
 
 		rawID, ok := mux.Vars(r)["id"]
 		if !ok {
-			// TODO handle err
-			log.Println("id missing")
-			writeInternalServerErr(w)
+			renderAdminPageWithErrMessage("id is missing", app.Data)(w, r)
 			return
 		}
 
 		id, err := strconv.Atoi(rawID)
 		if err != nil {
-			// TODO handle error
-			log.Printf("error while getting links: %v", err)
-			writeInternalServerErr(w)
+			renderAdminPageWithErrMessage("bad id, got: "+rawID, app.Data)(w, r)
 			return
 		}
 
 		if err := app.DB.UpdateWeight(id, action); err != nil {
-			// TODO handle error
-			log.Printf("error while getting links: %v", err)
-			writeInternalServerErr(w)
+			renderAdminPageWithErrMessage(
+				fmt.Sprintf("error while updating link: %v", err),
+				app.Data)(w, r)
 			return
 		}
 
 		if err := app.UpdateLinks(); err != nil {
-			log.Printf("error while updating links: %v", err)
-			writeInternalServerErr(w)
+			renderAdminPageWithErrMessage(
+				fmt.Sprintf("error while updating link: %v", err),
+				app.Data)(w, r)
 			return
 		}
 
-		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		renderAdminPage(app.Data)(w, r)
 	})
 
 	admin.HandleFunc("/links/{id}/delete", func(w http.ResponseWriter, r *http.Request) {
 		rawID, ok := mux.Vars(r)["id"]
 		if !ok {
-			// TODO handle err
-			log.Println("id missing")
-			writeInternalServerErr(w)
+			renderAdminPageWithErrMessage("id is missing", app.Data)(w, r)
 			return
 		}
 
 		id, err := strconv.Atoi(rawID)
 		if err != nil {
-			// TODO handle error
-			log.Printf("error while getting links: %v", err)
-			writeInternalServerErr(w)
+			renderAdminPageWithErrMessage("bad id, got: "+rawID, app.Data)(w, r)
 			return
 		}
 
 		if err := app.DB.DeleteLink(id); err != nil {
-			// TODO handle error
-			log.Printf("error while getting links: %v", err)
-			writeInternalServerErr(w)
+			renderAdminPageWithErrMessage(
+				fmt.Sprintf("error while deleting link: %v", err),
+				app.Data)(w, r)
 			return
 		}
 
 		if err := app.UpdateLinks(); err != nil {
-			log.Printf("error while updating links: %v", err)
-			writeInternalServerErr(w)
+			renderAdminPageWithErrMessage(
+				fmt.Sprintf("error while updating links: %v", err),
+				app.Data)(w, r)
+		}
+
+		renderAdminPage(app.Data)(w, r)
+	})
+
+	admin.HandleFunc("/links/{id}/update", func(w http.ResponseWriter, r *http.Request) {
+		rawID, ok := mux.Vars(r)["id"]
+		if !ok {
+			renderAdminPageWithErrMessage("id is missing", app.Data)(w, r)
 			return
 		}
 
-		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		id, err := strconv.Atoi(rawID)
+		if err != nil {
+			renderAdminPageWithErrMessage("bad id, got: "+rawID, app.Data)(w, r)
+			return
+		}
+
+		r.ParseForm()
+
+		text := r.Form.Get("text")
+		url := r.Form.Get("url")
+		imageURL := r.Form.Get("image_url")
+
+		if url == "" {
+			renderAdminPageWithErrMessage("url is missing", app.Data)(w, r)
+			return
+		}
+		if text == "" {
+			renderAdminPageWithErrMessage("text is missing", app.Data)(w, r)
+			return
+		}
+		if imageURL == "" {
+			renderAdminPageWithErrMessage("image_url is missing", app.Data)(w, r)
+			return
+		}
+
+		if err := app.DB.UpdateLink(id, text, url, imageURL); err != nil {
+			renderAdminPageWithErrMessage(
+				fmt.Sprintf("error while updating link: %v", err),
+				app.Data)(w, r)
+			return
+		}
+
+		if err := app.UpdateLinks(); err != nil {
+			renderAdminPageWithErrMessage(
+				fmt.Sprintf("error while updating links: %v", err),
+				app.Data)(w, r)
+			return
+		}
+
+		renderAdminPage(app.Data)(w, r)
 	})
 
 	admin.HandleFunc("/links/new", func(w http.ResponseWriter, r *http.Request) {
@@ -370,9 +444,33 @@ func main() {
 		url := r.Form.Get("url")
 		imageURL := r.Form.Get("image_url")
 
+		if url == "" {
+			renderAdminPageWithErrMessage("url is missing", app.Data)(w, r)
+		}
+
+		if text == "" {
+			renderAdminPageWithErrMessage("text is missing", app.Data)(w, r)
+		}
+
+		if imageURL == "" {
+			ogp, err := opengraph.Fetch(url)
+			if err != nil {
+				renderAdminPageWithErrMessage(
+					fmt.Sprintf("error while fetching link: %v", err),
+					app.Data)(w, r)
+				return
+			}
+
+			ogp.ToAbs()
+			if len(ogp.Image) > 0 {
+				imageURL = ogp.Image[0].URL
+			}
+		}
+
 		if err := app.DB.InsertLink(text, url, imageURL); err != nil {
-			log.Printf("error while updating links: %v", err)
-			writeInternalServerErr(w)
+			renderAdminPageWithErrMessage(
+				fmt.Sprintf("error while inserting link: %v", err),
+				app.Data)(w, r)
 			return
 		}
 
@@ -382,7 +480,7 @@ func main() {
 			return
 		}
 
-		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		renderAdminPage(app.Data)(w, r)
 	})
 
 	r.PathPrefix("/static/").Handler(

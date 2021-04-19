@@ -36,3 +36,18 @@ body {
 .stats {
   margin-top: 10px;
 }
+
+.admin form {
+  margin-top: 10px;
+  color: #000;
+}
+
+.admin form input {
+  background-color: transparent;
+  border: 1px solid #d1d1d1;
+}
+
+.error {
+  font-weight: bold;
+  color: red;
+}
