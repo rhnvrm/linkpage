@@ -9,11 +9,15 @@
         <link rel="stylesheet" href="/static/css/normalize.css">
         <link rel="stylesheet" href="/static/css/skeleton.css">
         <link rel="stylesheet" href="/static/css/custom.css">
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
     </head>
     <body>
         <div class="container">
             <section class="header">
-                <img width="100px" src="{{.LogoURL}}">
+                <a href="/">
+                    <img width="100px" src="{{.LogoURL}}">
+                </a>
                 <h3>{{.Title}}</h3>
                 <h5>{{.Intro}}</h5>
             </section>

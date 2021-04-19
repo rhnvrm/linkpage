@@ -209,7 +209,6 @@ func basicAuth(cfg Config) negroni.HandlerFunc {
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		user, pass, _ := r.BasicAuth()
 
-		log.Println("DBG", user, pass, cfg.Auth.Username, cfg.Auth.Password)
 		if cfg.Auth.Username != user || cfg.Auth.Password != pass {
 			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
 			http.Error(w, "Unauthorized.", http.StatusUnauthorized)
@@ -396,6 +395,6 @@ func main() {
 		ReadTimeout:  cfg.WriteTimeout,
 	}
 
-	log.Printf("starting server at", cfg.HTTPAddr)
+	log.Println("starting server at", cfg.HTTPAddr)
 	log.Fatal(srv.ListenAndServe())
 }

@@ -1,3 +1,7 @@
+body {
+  font-family: "Inter", sans-serif;
+}
+
 .container {
   max-width: 800px;
 }
@@ -14,11 +18,16 @@
   height: 100px;
   text-align: center;
 }
+.link:hover {
+  background: #1d2d2c;
+  border-color: #273d3b;
+}
 .link a {
   color: #fff;
 }
 .text {
   line-height: 100px;
+  font-size: 16px;
 }
 .thumbnail {
   width: 100px;
