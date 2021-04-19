@@ -54,6 +54,11 @@ body {
   color: red;
 }
 
+.success {
+  font-weight: bold;
+  color: green;
+}
+
 .data {
   display: flex;
   width: 100%;

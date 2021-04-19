@@ -77,6 +77,7 @@ type Page struct {
 	Intro   string
 	Links   []Link
 	Error   string
+	Success string
 }
 
 type cachedTemplate struct {
@@ -128,7 +129,7 @@ type LinkDB struct {
 func (l *LinkDB) GetLinks() ([]Link, error) {
 	links := []Link{}
 	if err := l.db.Select(&links,
-		"SELECT * FROM links ORDER BY weight DESC, link_id DESC;"); err != nil {
+		"SELECT * FROM links ORDER BY weight DESC, link_id ASC;"); err != nil {
 		return nil, err
 	}
 
@@ -480,7 +481,9 @@ func main() {
 			return
 		}
 
-		renderAdminPage(app.Data)(w, r)
+		p := app.Data
+		p.Success = "New link inserted!"
+		renderAdminPage(p)(w, r)
 	})
 
 	r.PathPrefix("/static/").Handler(

@@ -23,17 +23,18 @@
             </section>
 
             <span class="error">{{.Error}}</span>
+            <span class="success">{{.Success}}</span>
             <hr>
             <h5>New Link</h5>
             <form action="/admin/links/new" method="POST">
-                <label for="text">Text*</label>
-                <input class="u-full-width" type="text" name="text"><br>    
-
                 <label for="url">URL*</label>
-                <input class="u-full-width" type="url" name="url"><br>    
+                <input class="u-full-width" placeholder="https://" type="url" name="url"><br>  
+                
+                <label for="text">Text*</label>
+                <input class="u-full-width" placeholder="Description" type="text" name="text"><br>    
                 
                 <label for="image_url">Image URL</label>
-                <input class="u-full-width"  type="url" name="image_url"><br>
+                <input class="u-full-width" placeholder="https://" type="url" name="image_url"><br>
 
                 
                 <input type="submit" type="submit" value="Submit">
