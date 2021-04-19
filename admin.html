@@ -44,24 +44,25 @@
  
             <div class="stats">
                 <a href="/admin/links/{{.ID}}/weight?action=up">Up</a> 
+                <a>
+                   ({{.Weight}})
+                </a>
                 <a href="/admin/links/{{.ID}}/weight?action=down">Down</a> 
+                <div class="push"></div>
                 <a href="/admin/links/{{.ID}}/delete">Delete</a> 
-                <div>
-                    Hits: {{.Hits}} | Weight: {{.Weight}}
-                </div>
             </div>               
             <div class="row link">
+                <div class="linker"> 
                 {{if .ImageURL}}
-                <div class="two columns">
+                <div class="thumb">
                     <img class="thumbnail" src="{{.ImageURL}}">
                 </div>
-                <div class="ten columns">
-                {{ else }}
-                <div class="twelve columns">
                 {{end}}
+                <div class="data">
                     <span class="text">
-                        {{.Text}}
+                        {{ .Text }}
                     </span>
+                </div>
                 </div>
             </div>
             <form action="/admin/links/{{.ID}}/update" action="POST">

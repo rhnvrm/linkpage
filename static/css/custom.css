@@ -35,8 +35,17 @@ body {
   width: 100px;
   height: 100px;
 }
+
 .stats {
   margin-top: 10px;
+  display: flex;
+}
+.push {
+  margin-left: auto;
+}
+.stats a {
+  text-decoration: none;
+  margin-right: 5px;
 }
 
 .admin form {
@@ -64,7 +73,7 @@ body {
   width: 100%;
 }
 
-.row a {
+.row .linker {
   display: flex;
   text-decoration: none;
 }

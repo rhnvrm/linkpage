@@ -23,7 +23,7 @@
             </section>
             {{ range .Links }}
             <div class="row link">
-                <a href="{{.URL}}" ping="/hits/{{.ID}}">
+                <a class="linker" href="{{.URL}}" ping="/hits/{{.ID}}">
                 {{if .ImageURL}}
                 <div class="thumb">
                     <img class="thumbnail" src="{{.ImageURL}}">
