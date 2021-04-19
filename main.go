@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	"fmt"
 	"io"
 	"log"
@@ -21,11 +22,16 @@ import (
 	"github.com/urfave/negroni"
 )
 
+//go:embed home.html admin.html
+var templateFS embed.FS
+
+//go:embed static
+var staticFS embed.FS
+
 type Config struct {
 	HTTPAddr     string        `koanf:"http_address"`
 	ReadTimeout  time.Duration `koanf:"read_timeout"`
 	WriteTimeout time.Duration `koanf:"write_timeout"`
-	StaticDir    string        `koanf:"static_dir"`
 	DBFile       string        `koanf:"dbfile"`
 
 	PageLogoURL string `koanf:"page_logo_url"`
@@ -263,8 +269,8 @@ func main() {
 		},
 		DB: &LinkDB{db},
 		Templates: Templates{
-			Home:  newCachedTemplate(template.Must(template.ParseFiles("home.html"))),
-			Admin: template.Must(template.ParseFiles("admin.html")),
+			Home:  newCachedTemplate(template.Must(template.ParseFS(templateFS, "home.html"))),
+			Admin: template.Must(template.ParseFS(templateFS, "admin.html")),
 		},
 	}
 
@@ -514,8 +520,7 @@ func main() {
 		renderAdminPage(p)(w, r)
 	})
 
-	r.PathPrefix("/static/").Handler(
-		http.StripPrefix("/static/", http.FileServer(http.Dir(cfg.StaticDir))))
+	r.PathPrefix("/static/").Handler(http.FileServer(http.FS(staticFS)))
 
 	srv := &http.Server{
 		Handler:      r,

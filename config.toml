@@ -1,7 +1,6 @@
 http_address="localhost:8000"
 read_timeout="3s"
 write_timeout="3s"
-static_dir="static"
 dbfile="app.db"
 
 page_logo_url="/static/icon.png"
