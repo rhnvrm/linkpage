@@ -1,22 +1,28 @@
 # linkpage
 
-Linkpage (working project name) is a FOSS Selfhosted alternative to
-campsite.bio or link.bio
+LinkPage is a FOSS Selfhosted alternative to link listing websites.
+
+## Demo
+
+![demo](static/demo.png)
+![demo_admin](static/demo_admin.png)
 
 ## Developer Setup
 
-Copy schema and run it:
+0. `git clone https://github.com/rhnvrm/linkpage.git`
+
+1. Initialize SQL schema from `schema.sql` by copying the schema using sqlite:
 
 ```
 sqlite3 app.db
 
-sqlite> (paste and run schema here)
+sqlite> (paste and run schema)
 ```
 
-Edit `config.toml`
+2. Edit `config.toml`
 
-Run the app
+3. Run the app
 
 `go run main.go`
 
-Insert entries under `/admin` page.
+4. Insert new entries under `/admin` page.
