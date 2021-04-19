@@ -17,6 +17,7 @@ import (
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/providers/file"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/urfave/negroni"
 )
 
 type Config struct {
@@ -29,6 +30,13 @@ type Config struct {
 	PageLogoURL string `koanf:"page_logo_url"`
 	PageTitle   string `koanf:"page_title"`
 	PageIntro   string `koanf:"page_intro"`
+
+	Auth CfgAuth `koanf:"auth"`
+}
+
+type CfgAuth struct {
+	Username string `koanf:"username"`
+	Password string `koanf:"password"`
 }
 
 type App struct {
@@ -197,6 +205,21 @@ func writeInternalServerErr(w http.ResponseWriter) {
 	w.Write([]byte("500 - Internal Server Error!"))
 }
 
+func basicAuth(cfg Config) negroni.HandlerFunc {
+	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		user, pass, _ := r.BasicAuth()
+
+		log.Println("DBG", user, pass, cfg.Auth.Username, cfg.Auth.Password)
+		if cfg.Auth.Username != user || cfg.Auth.Password != pass {
+			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+			http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+			return
+		}
+
+		next(w, r)
+	})
+}
+
 func main() {
 	cfg := initConfig("config.toml")
 
@@ -222,6 +245,11 @@ func main() {
 	app.UpdateLinks()
 
 	r := mux.NewRouter()
+	admin := mux.NewRouter().PathPrefix("/admin").Subrouter().StrictSlash(true)
+	r.PathPrefix("/admin").Handler(negroni.New(
+		negroni.HandlerFunc(basicAuth(cfg)),
+		negroni.Wrap(admin),
+	))
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if err := app.Templates.Home.Write(w); err != nil {
@@ -252,7 +280,7 @@ func main() {
 		}
 	})
 
-	r.HandleFunc("/admin", func(w http.ResponseWriter, r *http.Request) {
+	admin.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		app.UpdateLinks()
 		if err := app.Templates.Admin.Execute(w, app.Data); err != nil {
 			log.Printf("error while writing template: %v", err)
@@ -260,7 +288,7 @@ func main() {
 		}
 	})
 
-	r.HandleFunc("/admin/links/{id}/weight", func(w http.ResponseWriter, r *http.Request) {
+	admin.HandleFunc("/links/{id}/weight", func(w http.ResponseWriter, r *http.Request) {
 		keys, ok := r.URL.Query()["action"]
 
 		if !ok || len(keys[0]) < 1 {
@@ -303,7 +331,7 @@ func main() {
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
 	})
 
-	r.HandleFunc("/admin/links/{id}/delete", func(w http.ResponseWriter, r *http.Request) {
+	admin.HandleFunc("/links/{id}/delete", func(w http.ResponseWriter, r *http.Request) {
 		rawID, ok := mux.Vars(r)["id"]
 		if !ok {
 			// TODO handle err
@@ -336,7 +364,7 @@ func main() {
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
 	})
 
-	r.HandleFunc("/admin/links/new", func(w http.ResponseWriter, r *http.Request) {
+	admin.HandleFunc("/links/new", func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
 		text := r.Form.Get("text")
@@ -368,5 +396,6 @@ func main() {
 		ReadTimeout:  cfg.WriteTimeout,
 	}
 
+	log.Printf("starting server at", cfg.HTTPAddr)
 	log.Fatal(srv.ListenAndServe())
 }

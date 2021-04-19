@@ -6,9 +6,9 @@
         <title>{{.Title}}</title>
         <meta name="description" content="{{.Intro}}">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="static/css/normalize.css">
-        <link rel="stylesheet" href="static/css/skeleton.css">
-        <link rel="stylesheet" href="static/css/custom.css">
+        <link rel="stylesheet" href="/static/css/normalize.css">
+        <link rel="stylesheet" href="/static/css/skeleton.css">
+        <link rel="stylesheet" href="/static/css/custom.css">
     </head>
     <body>
         <div class="container">
@@ -21,7 +21,7 @@
             <div class="row link">
                 <a href="{{.URL}}" ping="/hits/{{.ID}}">
                 <div class="two columns">
-                    <img width="100px" height="100px" src="{{.ImageURL}}">
+                    <img class="thumbnail" src="{{.ImageURL}}">
                 </div>
                 <div class="ten columns">
                     <span class="text">

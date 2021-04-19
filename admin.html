@@ -6,9 +6,9 @@
         <title>{{.Title}}</title>
         <meta name="description" content="{{.Intro}}">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="static/css/normalize.css">
-        <link rel="stylesheet" href="static/css/skeleton.css">
-        <link rel="stylesheet" href="static/css/custom.css">
+        <link rel="stylesheet" href="/static/css/normalize.css">
+        <link rel="stylesheet" href="/static/css/skeleton.css">
+        <link rel="stylesheet" href="/static/css/custom.css">
     </head>
     <body>
         <div class="container">
@@ -23,12 +23,14 @@
                 <a href="/admin/links/{{.ID}}/weight?action=up">Up</a> 
                 <a href="/admin/links/{{.ID}}/weight?action=down">Down</a> 
                 <a href="/admin/links/{{.ID}}/delete">Delete</a> 
+                <div>
+                    Hits: {{.Hits}} | Weight: {{.Weight}}
+                </div>
             </div>               
             <div class="row link">
-
                 <a href="{{.URL}}">
                 <div class="two columns">
-                    <img width="100%" src="{{.ImageURL}}">
+                    <img class="thumbnail" src="{{.ImageURL}}">
                 </div>
                 <div class="ten columns">
                     <span class="text">
@@ -38,11 +40,7 @@
                 </a>
             </div>
 
-            <div class="stats">
-                <div>
-                    Hits: {{.Hits}} | Weight: {{.Weight}}
-                </div>
-            </div>
+
             {{ end }}
 
             <hr>

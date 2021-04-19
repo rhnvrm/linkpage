@@ -7,4 +7,5 @@ require (
 	github.com/jmoiron/sqlx v1.3.3
 	github.com/knadh/koanf v0.16.0
 	github.com/mattn/go-sqlite3 v1.14.7
+	github.com/urfave/negroni v1.0.0
 )
