@@ -76,8 +76,13 @@ type Page struct {
 	Title   string
 	Intro   string
 	Links   []Link
+
 	Error   string
 	Success string
+
+	OGPURL   string
+	OGPImage string
+	OGPDesc  string
 }
 
 type cachedTemplate struct {
@@ -444,9 +449,32 @@ func main() {
 		text := r.Form.Get("text")
 		url := r.Form.Get("url")
 		imageURL := r.Form.Get("image_url")
+		submitType := r.Form.Get("submit")
 
 		if url == "" {
 			renderAdminPageWithErrMessage("url is missing", app.Data)(w, r)
+		}
+
+		if submitType == "Fetch Data" {
+			ogp, err := opengraph.Fetch(url)
+			if err != nil {
+				renderAdminPageWithErrMessage(
+					fmt.Sprintf("error while fetching link: %v", err),
+					app.Data)(w, r)
+				return
+			}
+
+			ogp.ToAbs()
+			if len(ogp.Image) > 0 {
+				imageURL = ogp.Image[0].URL
+			}
+
+			p := app.Data
+			p.OGPImage = imageURL
+			p.OGPDesc = ogp.Title
+			p.OGPURL = url
+			renderAdminPage(p)(w, r)
+			return
 		}
 
 		if text == "" {

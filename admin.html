@@ -22,22 +22,35 @@
                 <h5>{{.Intro}}</h5>
             </section>
 
+            <hr>
             <span class="error">{{.Error}}</span>
             <span class="success">{{.Success}}</span>
-            <hr>
             <h5>New Link</h5>
             <form action="/admin/links/new" method="POST">
                 <label for="url">URL*</label>
-                <input class="u-full-width" placeholder="https://" type="url" name="url"><br>  
+                <div class="row">
+                    <div class="eight columns">
+                        <input class="u-full-width" placeholder="https://" type="url" name="url"
+                               {{ with .OGPURL }} value= "{{.}}" {{ end }}
+                        >
+                    </div>
+                    <div class="four columns">
+                        <input class="u-full-width" type="submit" type="submit" name="submit" value="Fetch Data">
+                    </div>
+                </div>
                 
                 <label for="text">Text*</label>
-                <input class="u-full-width" placeholder="Description" type="text" name="text"><br>    
+                <input class="u-full-width" placeholder="Description" type="text" name="text"
+                       {{ with .OGPDesc }} value= "{{.}}" {{ end }}
+                ><br>    
                 
                 <label for="image_url">Image URL</label>
-                <input class="u-full-width" placeholder="https://" type="url" name="image_url"><br>
+                <input class="u-full-width" placeholder="https://" type="url" name="image_url"
+                       {{ with .OGPImage }} value= "{{.}}" {{ end }}
+                ><br>
 
                 
-                <input type="submit" type="submit" value="Submit">
+                <input type="submit" type="submit" name="submit" value="Submit">
             </form>
             <hr>
             {{ range .Links }}
