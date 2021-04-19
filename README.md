@@ -1,4 +1,4 @@
-# LinkPage [![Zerodha Tech](https://zerodha.tech/static/images/github-badge.svg)](https://zerodha.tech) 
+# LinkPage [![Zerodha Tech](https://zerodha.tech/static/images/github-badge.svg)](https://zerodha.tech)
 
 LinkPage is a FOSS Selfhosted alternative to link listing websites.
 
@@ -14,13 +14,21 @@ LinkPage is a FOSS Selfhosted alternative to link listing websites.
 
 ## Demo
 
-### Home 
+### Home
 
 <img src="static/demo.png" height="400" >
 
 ### Admin
 
 <img src="static/demo_admin.png" height="400" >
+
+## Get Started
+
+1. Download the latest release
+2. Decompress the archive
+3. Create a sqlite db with the schema using `sqlite3 linkpage.db < schema.sql`
+4. Copy the [config file](config.toml) and update it with your settings
+5. Run the app using `./linkpage`
 
 ## Developer Setup
 
