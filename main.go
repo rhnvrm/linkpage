@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"text/template"
 	"time"
@@ -298,7 +299,21 @@ func runApp(configFilePath string) {
 	}
 
 	// Initial setup of links
-	app.UpdateLinks()
+	if err := app.UpdateLinks(); err != nil {
+		if strings.Contains(err.Error(), "no such table") {
+			log.Println("schema not initialized, attempting to initialize schema")
+
+			if err := execSchema(db); err != nil {
+				log.Fatal(err)
+			}
+
+			if err := app.UpdateLinks(); err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			log.Fatalf("error while trying to update links: %v", err)
+		}
+	}
 
 	r := mux.NewRouter()
 	admin := mux.NewRouter().PathPrefix("/admin").Subrouter().StrictSlash(true)
@@ -560,39 +575,51 @@ func runApp(configFilePath string) {
 	log.Fatal(srv.ListenAndServe())
 }
 
-func initApp() {
-	file, err := os.Create("app.db")
+func initDB(dbFilePath string) {
+	file, err := os.Create(dbFilePath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	file.Close()
 
-	db, err := sqlx.Connect("sqlite", "app.db")
+	db, err := sqlx.Connect("sqlite", dbFilePath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	schemaFile, err := setupFS.Open("schema.sql")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	schema, err := ioutil.ReadAll(schemaFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := schemaFile.Close(); err != nil {
-		log.Fatal(err)
-	}
-
-	if _, err := db.Exec(string(schema)); err != nil {
+	if err := execSchema(db); err != nil {
 		log.Fatal(err)
 	}
 
 	if err := db.Close(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func execSchema(db *sqlx.DB) error {
+	schemaFile, err := setupFS.Open("schema.sql")
+	if err != nil {
+		return err
+	}
+
+	schema, err := ioutil.ReadAll(schemaFile)
+	if err != nil {
+		return err
+	}
+
+	if err := schemaFile.Close(); err != nil {
+		return err
+	}
+
+	if _, err := db.Exec(string(schema)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func initApp(dbFilePath string) {
+	initDB(dbFilePath)
 
 	outCfgFile, err := os.Create("config.toml")
 	if err != nil {
@@ -616,7 +643,7 @@ func initApp() {
 func main() {
 	switch appMode {
 	case "init_app":
-		initApp()
+		initApp("app.db")
 	case "run_app":
 		runApp(configFilePath)
 	default:
