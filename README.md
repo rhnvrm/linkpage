@@ -27,9 +27,8 @@ LinkPage is a FOSS self-hosted alternative to link listing websites such as Link
 
 1. Download the latest release
 2. Decompress the archive
-3. Create a sqlite db with the schema using `sqlite3 linkpage.db < schema.sql`
-4. Copy the [config file](config.toml) and update it with your settings
-5. Run the app using `./linkpage`
+3. Run the app using `./linkpage --init`, this will generate an empty sqlite database and config file in your local directory.
+4. Now you can run the app using `./linkpage`, goto the `/admin` page to add new entries.
 
 ## Developer Setup
 

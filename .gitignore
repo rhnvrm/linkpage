@@ -5,3 +5,4 @@ tmp/
 *.db
 *.bin
 dist/
+config.toml

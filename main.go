@@ -5,8 +5,10 @@ import (
 	"embed"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 	"text/template"
@@ -19,6 +21,7 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/otiai10/opengraph/v2"
+	flag "github.com/spf13/pflag"
 	"github.com/urfave/negroni"
 )
 
@@ -27,6 +30,9 @@ var templateFS embed.FS
 
 //go:embed static
 var staticFS embed.FS
+
+//go:embed schema.sql config.sample.toml
+var setupFS embed.FS
 
 type Config struct {
 	HTTPAddr     string        `koanf:"http_address"`
@@ -253,8 +259,24 @@ func basicAuth(cfg Config) negroni.HandlerFunc {
 	})
 }
 
-func main() {
-	cfg := initConfig("config.toml")
+var (
+	appMode        = "run_app"
+	configFilePath = "config.toml"
+)
+
+func init() {
+	flag.StringVar(&configFilePath, "config", "config.toml", "path to config file")
+	initApp := flag.Bool("init", false, "app initialization, creates a db and config file in current dir")
+
+	flag.Parse()
+
+	if *initApp == true {
+		appMode = "init_app"
+	}
+}
+
+func runApp(configFilePath string) {
+	cfg := initConfig(configFilePath)
 
 	db, err := sqlx.Connect("sqlite3", cfg.DBFile)
 	if err != nil {
@@ -535,4 +557,69 @@ func main() {
 
 	log.Println("starting server at", cfg.HTTPAddr)
 	log.Fatal(srv.ListenAndServe())
+}
+
+func initApp() {
+	file, err := os.Create("app.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	file.Close()
+
+	db, err := sqlx.Connect("sqlite3", "app.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	schemaFile, err := setupFS.Open("schema.sql")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	schema, err := ioutil.ReadAll(schemaFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := schemaFile.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+	if _, err := db.Exec(string(schema)); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := db.Close(); err != nil {
+		log.Fatal(err)
+	}
+
+	outCfgFile, err := os.Create("config.toml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer outCfgFile.Close()
+
+	setupCfgFile, err := setupFS.Open("config.sample.toml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer setupCfgFile.Close()
+
+	if _, err := io.Copy(outCfgFile, setupCfgFile); err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("config.toml and app.db generated.")
+}
+
+func main() {
+	log.Println(appMode)
+	switch appMode {
+	case "init_app":
+		initApp()
+	case "run_app":
+		runApp(configFilePath)
+	default:
+		runApp(configFilePath)
+	}
 }
