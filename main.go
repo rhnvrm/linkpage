@@ -567,7 +567,7 @@ func initApp() {
 	}
 	file.Close()
 
-	db, err := sqlx.Connect("sqlite3", "app.db")
+	db, err := sqlx.Connect("sqlite", "app.db")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -614,7 +614,6 @@ func initApp() {
 }
 
 func main() {
-	log.Println(appMode)
 	switch appMode {
 	case "init_app":
 		initApp()

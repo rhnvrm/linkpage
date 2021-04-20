@@ -1,4 +1,4 @@
-http_address="localhost:8000"
+http_address="0.0.0.0:8000"
 read_timeout="3s"
 write_timeout="3s"
 dbfile="app.db"
