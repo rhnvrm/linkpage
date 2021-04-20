@@ -10,16 +10,13 @@ builds:
     goos:
       - linux
       - darwin
+
 archives:
   - format: tar.gz
     files:
       - README.md
       - LICENSE
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      386: i386
-      amd64: x86_64
+
 checksum:
   name_template: "checksums.txt"
 snapshot:
@@ -40,3 +37,5 @@ dockers:
       - "rhnvrm/linkpage:latest"
       - "rhnvrm/linkpage:{{ .Tag }}"
     dockerfile: Dockerfile
+    extra_files:
+      - config.sample.toml
