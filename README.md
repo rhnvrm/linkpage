@@ -29,6 +29,7 @@ LinkPage is a FOSS self-hosted alternative to link listing websites such as Link
 2. Decompress the archive
 3. Run the app using `./linkpage --init`, this will generate an empty sqlite database and config file in your local directory.
 4. Now you can run the app using `./linkpage`, goto the `/admin` page to add new entries.
+5. Default login for admin page is "username" and "password". 
 
 ### Using Docker
 
