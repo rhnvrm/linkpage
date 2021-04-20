@@ -33,13 +33,14 @@ LinkPage is a FOSS self-hosted alternative to link listing websites such as Link
 ### Using Docker
 
 You can also use docker to run linkpage. Running the following command in 
-a directory will initialize the config file and database file for you. 
+will initialize the config file and database file for you in a
+docker volume called `linkpage`. 
 
-`docker run -v app.db:/linkpage -p 8000:8000 rhnvrm/linkpage:latest ./linkpage --init`
+`docker run -v linkpage:/linkpage -p 8000:8000 rhnvrm/linkpage:latest ./linkpage --init`
 
 After this, you can run the following command to start the app.
 
-`docker run -v app.db:/linkpage -p 8000:8000 rhnvrm/linkpage:latest ./linkpage`
+`docker run -v linkpage:/linkpage -p 8000:8000 rhnvrm/linkpage:latest ./linkpage`
 
 ## Developer Setup
 
