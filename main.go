@@ -310,6 +310,10 @@ func main() {
 			writeInternalServerErr(w)
 			return
 		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("{}"))
+		return
 	})
 
 	renderAdminPage := func(data Page) func(w http.ResponseWriter, r *http.Request) {

@@ -23,7 +23,7 @@
             </section>
             {{ range .Links }}
             <div class="row link">
-                <a class="linker" href="{{.URL}}" ping="/hits/{{.ID}}">
+                <a class="linker" href="{{.URL}}" onclick="return recordHit({{.ID}})">
                 {{if .ImageURL}}
                 <div class="thumb">
                     <img class="thumbnail" src="{{.ImageURL}}">
@@ -38,5 +38,16 @@
             </div>
             {{ end }}
         </div>
+        <script type="text/javascript">
+         async function fetchAsync (url) {
+             let response = await fetch(url);
+             let data = await response.json();
+             return data;
+         }
+         async function recordHit(id) {
+             fetchAsync("/hits/"+id)
+             return true
+         }
+        </script>
     </body>
 </html>
