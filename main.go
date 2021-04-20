@@ -19,10 +19,11 @@ import (
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/providers/file"
-	_ "github.com/mattn/go-sqlite3"
+
 	"github.com/otiai10/opengraph/v2"
 	flag "github.com/spf13/pflag"
 	"github.com/urfave/negroni"
+	_ "modernc.org/sqlite"
 )
 
 //go:embed home.html admin.html
@@ -278,7 +279,7 @@ func init() {
 func runApp(configFilePath string) {
 	cfg := initConfig(configFilePath)
 
-	db, err := sqlx.Connect("sqlite3", cfg.DBFile)
+	db, err := sqlx.Connect("sqlite", cfg.DBFile)
 	if err != nil {
 		log.Fatalln(err)
 	}
