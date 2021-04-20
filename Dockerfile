@@ -5,5 +5,3 @@ WORKDIR /linkpage
 COPY linkpage .
 COPY config.sample.toml config.toml
 CMD ["./linkpage"]
-EXPOSE 8000
-
