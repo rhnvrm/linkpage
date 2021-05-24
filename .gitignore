@@ -6,3 +6,4 @@ tmp/
 *.bin
 dist/
 config.toml
+static/custom/*

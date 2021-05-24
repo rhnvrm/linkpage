@@ -46,6 +46,8 @@ type Config struct {
 	PageTitle   string `koanf:"page_title"`
 	PageIntro   string `koanf:"page_intro"`
 
+	StaticFileDir string `koanf:"static_files"`
+
 	Auth CfgAuth `koanf:"auth"`
 }
 
@@ -562,7 +564,12 @@ func runApp(configFilePath string) {
 		renderAdminPage(p)(w, r)
 	})
 
-	r.PathPrefix("/static/").Handler(http.FileServer(http.FS(staticFS)))
+	r.PathPrefix("/static/app").Handler(http.FileServer(http.FS(staticFS)))
+
+	if cfg.StaticFileDir != "" {
+		r.PathPrefix("/static/custom").Handler(
+			http.StripPrefix("/static/custom", http.FileServer(http.Dir(cfg.StaticFileDir))))
+	}
 
 	srv := &http.Server{
 		Handler:      r,

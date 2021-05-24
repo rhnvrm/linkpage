@@ -7,6 +7,8 @@ page_logo_url="/static/icon.png"
 page_title="LinkPage"
 page_intro="Your friendly neighbourhood self-hostable FOSS link page."
 
+static_files = "static/custom"
+
 [auth]
 username="username"
 password="password"
