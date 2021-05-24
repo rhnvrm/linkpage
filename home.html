@@ -23,7 +23,7 @@
             </section>
             {{ range .Links }}
             <div class="row link">
-                <a class="linker" href="{{.URL}}" onclick="return recordHit({{.ID}})">
+                <a class="linker" href="{{.URL}}" target="_blank" onclick="return recordHit({{.ID}})">
                 {{if .ImageURL}}
                 <div class="thumb">
                     <img class="thumbnail" src="{{.ImageURL}}">
