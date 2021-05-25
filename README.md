@@ -12,6 +12,7 @@ LinkPage is a FOSS self-hosted alternative to link listing websites such as Link
 - Anonymized link click tracking
 - Simple sqlite3 setup for getting started instantly
 - Basic Auth for admin endpoints
+- Social Icons
 
 ## Demo
 
@@ -29,13 +30,13 @@ LinkPage is a FOSS self-hosted alternative to link listing websites such as Link
 2. Decompress the archive
 3. Run the app using `./linkpage --init`, this will generate an empty sqlite database and config file in your local directory.
 4. Now you can run the app using `./linkpage`, goto the `/admin` page to add new entries.
-5. Default login for admin page is "username" and "password". 
+5. Default login for admin page is "username" and "password".
 
 ### Using Docker
 
-You can also use docker to run linkpage. Running the following command in 
+You can also use docker to run linkpage. Running the following command in
 will initialize the config file and database file for you in a
-docker volume called `linkpage`. 
+docker volume called `linkpage`.
 
 `docker run -v linkpage:/linkpage -p 8000:8000 rhnvrm/linkpage:latest ./linkpage --init`
 
@@ -62,3 +63,7 @@ sqlite> (paste and run schema)
 `go run main.go`
 
 4. Insert new entries under `/admin` page.
+
+## Websites using LinkPage
+
+- [links.zrd.sh](https://links.zrd.sh)
