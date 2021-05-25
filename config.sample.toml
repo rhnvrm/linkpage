@@ -12,3 +12,10 @@ static_files = "static/custom"
 [auth]
 username="username"
 password="password"
+
+[social]
+facebook = ""
+instagram = ""
+linkedin = ""
+twitter = ""
+youtube = ""

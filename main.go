@@ -49,6 +49,8 @@ type Config struct {
 	StaticFileDir string `koanf:"static_files"`
 
 	Auth CfgAuth `koanf:"auth"`
+
+	Social map[string]string `koanf:"social"`
 }
 
 type CfgAuth struct {
@@ -99,6 +101,8 @@ type Page struct {
 	OGPURL   string
 	OGPImage string
 	OGPDesc  string
+
+	Social map[string]string
 }
 
 type cachedTemplate struct {
@@ -292,6 +296,7 @@ func runApp(configFilePath string) {
 			LogoURL: cfg.PageLogoURL,
 			Title:   cfg.PageTitle,
 			Intro:   cfg.PageIntro,
+			Social:  cfg.Social,
 		},
 		DB: &LinkDB{db},
 		Templates: Templates{

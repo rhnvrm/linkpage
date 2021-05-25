@@ -40,8 +40,27 @@
                 </a>
             </div>
             {{ end }}
+
+            <hr>
+
+            <div class="row">
+                <div class="social">
+                {{ range $k, $v := .Social }}
+                {{ if ne $v "" }}
+                <a href="{{$v}}" style="text-decoration:none;">
+                    <i data-feather="{{$k}}"></i>
+                </a>
+                {{ end }}
+                {{ end }}
+                </div>
+            </div>
+            
+            <div class="row footer">
+                powered by <a href="https://github.com/rhnvrm/linkpage">LinkPage</a>
+            </div>
         </div>
         <script type="text/javascript">
+
          async function fetchAsync (url) {
              let response = await fetch(url);
              let data = await response.json();
@@ -51,6 +70,13 @@
              fetchAsync("/hits/"+id)
              return true
          }
+        </script>
+        <script src="static/app/js/feather.min.js"></script>
+        <script>
+         
+         document.addEventListener("DOMContentLoaded", function(event) { 
+             feather.replace()
+         });
         </script>
     </body>
 </html>

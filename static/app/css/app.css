@@ -5,10 +5,12 @@ body {
 .container {
   max-width: 800px;
 }
+
 .header {
   margin-top: 6rem;
   text-align: center;
 }
+
 .link {
   margin-top: 10px;
   background: #4361d8;
@@ -18,19 +20,23 @@ body {
   height: 100px;
   text-align: center;
 }
+
 .link:hover {
   background: #1d2d2c;
   border-color: #273d3b;
 }
+
 .link a {
   color: #fff;
 }
+
 .text {
   font-size: 16px;
   padding: 20px;
   text-align: center;
   width: 100%;
 }
+
 .thumbnail {
   width: 100px;
   height: 100px;
@@ -40,9 +46,11 @@ body {
   margin-top: 10px;
   display: flex;
 }
+
 .push {
   margin-left: auto;
 }
+
 .stats a {
   text-decoration: none;
   margin-right: 5px;
@@ -76,4 +84,15 @@ body {
 .row .linker {
   display: flex;
   text-decoration: none;
+}
+
+.social {
+  margin: auto;
+  width: fit-content;
+}
+
+.footer {
+  color: dimgray;
+  width: fit-content;
+  margin: auto;
 }
