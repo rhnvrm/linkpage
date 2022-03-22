@@ -573,6 +573,7 @@ func runApp(configFilePath string) {
 	})
 
 	r.PathPrefix("/static/app").Handler(http.FileServer(http.FS(staticFS)))
+	r.PathPrefix("/static").Handler(http.FileServer(http.FS(staticFS)))
 
 	if cfg.StaticFileDir != "" {
 		r.PathPrefix("/static/custom").Handler(
