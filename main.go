@@ -42,9 +42,10 @@ type Config struct {
 	WriteTimeout time.Duration `koanf:"write_timeout"`
 	DBFile       string        `koanf:"dbfile"`
 
-	PageLogoURL string `koanf:"page_logo_url"`
-	PageTitle   string `koanf:"page_title"`
-	PageIntro   string `koanf:"page_intro"`
+	PageLogoURL    string `koanf:"page_logo_url"`
+	PageFaviconURL string `koanf:"page_favicon_url"`
+	PageTitle      string `koanf:"page_title"`
+	PageIntro      string `koanf:"page_intro"`
 
 	StaticFileDir string `koanf:"static_files"`
 
@@ -90,10 +91,11 @@ type Link struct {
 }
 
 type Page struct {
-	LogoURL string
-	Title   string
-	Intro   string
-	Links   []Link
+	LogoURL    string
+	FaviconURL string
+	Title      string
+	Intro      string
+	Links      []Link
 
 	Error   string
 	Success string
@@ -293,10 +295,11 @@ func runApp(configFilePath string) {
 
 	app := &App{
 		Data: Page{
-			LogoURL: cfg.PageLogoURL,
-			Title:   cfg.PageTitle,
-			Intro:   cfg.PageIntro,
-			Social:  cfg.Social,
+			LogoURL:    cfg.PageLogoURL,
+			FaviconURL: cfg.PageFaviconURL,
+			Title:      cfg.PageTitle,
+			Intro:      cfg.PageIntro,
+			Social:     cfg.Social,
 		},
 		DB: &LinkDB{db},
 		Templates: Templates{
