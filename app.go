@@ -31,8 +31,8 @@ func NewApp(cfg Config) (*App, error) {
 		DB: &LinkDB{db},
 		Templates: Templates{
 			Home: newCachedTemplate(
-				template.Must(template.ParseFS(templateFS, "templates/home.html"))),
-			Admin: template.Must(template.ParseFS(templateFS, "templates/admin.html")),
+				template.Must(template.ParseFS(templateFS, "templates/home.html", "templates/utils.html"))),
+			Admin: template.Must(template.ParseFS(templateFS, "templates/admin.html", "templates/utils.html")),
 		},
 	}
 
