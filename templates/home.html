@@ -4,20 +4,26 @@
     <body>
         <div class="container">
             <section class="header">
+                <div class="logo">
                 <a href="/">
                     <img width="100px" src="{{.LogoURL}}">
                 </a>
+                </div>
+                <div class="title">
                 <h3>{{.Title}}</h3>
                 <h5>{{.Intro}}</h5>
+                </div>
             </section>
             {{ range .Links }}
             <div class="row link">
                 <a class="linker" href="{{.URL}}" target="_blank" onclick="return recordHit({{.ID}})">
-                {{if .ImageURL}}
                 <div class="thumb">
+                {{if .ImageURL}}
                     <img class="thumbnail" src="{{.ImageURL}}">
-                </div>
+                {{else}}
+                    <div class="thumbnail"></div>
                 {{end}}
+                </div>
                 <div class="data">
                     <span class="text">
                         {{ .Text }}
