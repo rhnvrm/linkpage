@@ -1,9 +1,12 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -247,4 +250,25 @@ func (app *App) HandleAdminNew(w http.ResponseWriter, r *http.Request) {
 	p := app.Data
 	p.Success = "New link inserted!"
 	app.renderAdminPage(p)(w, r)
+}
+
+// customFileServer creates a handler that overlays customDir on top of staticFS.
+func customFileServer(customDir string, staticFS embed.FS) http.Handler {
+	if customDir == "" {
+		return http.FileServer(http.FS(staticFS))
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// First, check if the file exists in the custom directory
+		customPath := filepath.Join(customDir, r.URL.Path)
+		if _, err := os.Stat(customPath); err == nil {
+			// Serve file from custom directory
+			http.ServeFile(w, r, customPath)
+			return
+		}
+
+		// Fallback to the embedded staticFS if the file is not in the custom directory
+		staticHandler := http.FileServer(http.FS(staticFS))
+		staticHandler.ServeHTTP(w, r)
+	})
 }

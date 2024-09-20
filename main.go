@@ -1,24 +1,16 @@
 package main
 
 import (
-	"bytes"
 	"embed"
-	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 	"text/template"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
-	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/parsers/toml"
-	"github.com/knadh/koanf/providers/file"
 
 	flag "github.com/spf13/pflag"
 	"github.com/urfave/negroni"
@@ -33,158 +25,6 @@ var staticFS embed.FS
 
 //go:embed schema.sql config.sample.toml
 var setupFS embed.FS
-
-type Config struct {
-	HTTPAddr     string        `koanf:"http_address"`
-	ReadTimeout  time.Duration `koanf:"read_timeout"`
-	WriteTimeout time.Duration `koanf:"write_timeout"`
-	DBFile       string        `koanf:"dbfile"`
-
-	PageLogoURL string `koanf:"page_logo_url"`
-	PageTitle   string `koanf:"page_title"`
-	PageIntro   string `koanf:"page_intro"`
-
-	StaticFileDir string `koanf:"static_files"`
-
-	Auth CfgAuth `koanf:"auth"`
-
-	Social map[string]string `koanf:"social"`
-}
-
-type CfgAuth struct {
-	Username string `koanf:"username"`
-	Password string `koanf:"password"`
-}
-
-type App struct {
-	Data      Page
-	DB        *LinkDB
-	Templates Templates
-	sync.RWMutex
-}
-
-func (app *App) UpdateLinks() error {
-	links, err := app.DB.GetLinks()
-	if err != nil {
-		return fmt.Errorf("error while getting links: %v", err)
-	}
-
-	app.Data.Links = links
-
-	if err := app.Templates.Home.Save(app.Data); err != nil {
-		return fmt.Errorf("failed to save template: %v", err)
-	}
-
-	return nil
-}
-
-type Link struct {
-	ID       int    `db:"link_id"`
-	URL      string `db:"url"`
-	Text     string `db:"message"`
-	ImageURL string `db:"image_url"`
-	Weight   int    `db:"weight"`
-	Hits     int    `db:"hits"`
-}
-
-type Page struct {
-	LogoURL string
-	Title   string
-	Intro   string
-	Links   []Link
-
-	Error   string
-	Success string
-
-	OGPURL   string
-	OGPImage string
-	OGPDesc  string
-
-	Social map[string]string
-}
-
-type cachedTemplate struct {
-	*template.Template
-	rawData []byte
-	sync.RWMutex
-}
-
-func newCachedTemplate(tmpl *template.Template) *cachedTemplate {
-	return &cachedTemplate{
-		Template: tmpl,
-		rawData:  nil,
-	}
-}
-
-func (ct *cachedTemplate) Save(data Page) error {
-	var out = bytes.NewBuffer([]byte{})
-	if err := ct.Execute(out, data); err != nil {
-		return err
-	}
-
-	ct.Lock()
-	ct.rawData = out.Bytes()
-	ct.Unlock()
-	return nil
-}
-
-func (ct *cachedTemplate) Write(w io.Writer) error {
-	ct.RLock()
-	defer ct.RUnlock()
-
-	_, err := io.Copy(w, bytes.NewBuffer(ct.rawData))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-type Templates struct {
-	Home  *cachedTemplate
-	Admin *template.Template
-}
-
-func initConfig(configFile string) Config {
-	var (
-		config Config
-		k      = koanf.New(".")
-	)
-
-	if err := k.Load(file.Provider(configFile), toml.Parser()); err != nil {
-		log.Fatalf("error loading file: %v", err)
-	}
-
-	if err := k.Unmarshal("", &config); err != nil {
-		log.Fatalf("error while unmarshalling config: %v", err)
-	}
-
-	return config
-}
-
-func writeInternalServerErr(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusInternalServerError)
-	w.Write([]byte("500 - Internal Server Error!"))
-}
-
-func writeBadRequest(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte("400 - " + message))
-}
-
-func basicAuth(cfg Config) negroni.HandlerFunc {
-	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		user, pass, _ := r.BasicAuth()
-
-		if cfg.Auth.Username != user || cfg.Auth.Password != pass {
-			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
-			http.Error(w, "Unauthorized.", http.StatusUnauthorized)
-			return
-		}
-
-		next(w, r)
-	})
-}
 
 var (
 	appMode        = "run_app"
@@ -249,25 +89,13 @@ func runApp(configFilePath string) {
 	))
 
 	r.HandleFunc("/", app.HandleHome)
-
 	r.HandleFunc("/hits/{id}", app.HandleHits)
-
 	admin.HandleFunc("/", app.HandleAdmin)
-
 	admin.HandleFunc("/links/{id}/weight", app.HandleAdminUpdateWeight)
-
 	admin.HandleFunc("/links/{id}/delete", app.HandleAdminDelete)
-
 	admin.HandleFunc("/links/{id}/update", app.HandleAdminUpdate)
-
 	admin.HandleFunc("/links/new", app.HandleAdminNew)
-
-	r.PathPrefix("/static/app").Handler(http.FileServer(http.FS(staticFS)))
-
-	if cfg.StaticFileDir != "" {
-		r.PathPrefix("/static/custom").Handler(
-			http.StripPrefix("/static/custom", http.FileServer(http.Dir(cfg.StaticFileDir))))
-	}
+	r.PathPrefix("/static/app").Handler(customFileServer(cfg.StaticFileDir, staticFS))
 
 	srv := &http.Server{
 		Handler:      r,
@@ -276,51 +104,8 @@ func runApp(configFilePath string) {
 		ReadTimeout:  cfg.WriteTimeout,
 	}
 
-	log.Println("starting server at", cfg.HTTPAddr)
+	log.Printf("starting server at http://%s", cfg.HTTPAddr)
 	log.Fatal(srv.ListenAndServe())
-}
-
-func initDB(dbFilePath string) {
-	file, err := os.Create(dbFilePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	file.Close()
-
-	db, err := sqlx.Connect("sqlite", dbFilePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := execSchema(db); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := db.Close(); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func execSchema(db *sqlx.DB) error {
-	schemaFile, err := setupFS.Open("schema.sql")
-	if err != nil {
-		return err
-	}
-
-	schema, err := ioutil.ReadAll(schemaFile)
-	if err != nil {
-		return err
-	}
-
-	if err := schemaFile.Close(); err != nil {
-		return err
-	}
-
-	if _, err := db.Exec(string(schema)); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func initApp(dbFilePath string) {
