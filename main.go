@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 	"text/template"
@@ -144,85 +143,6 @@ func (ct *cachedTemplate) Write(w io.Writer) error {
 type Templates struct {
 	Home  *cachedTemplate
 	Admin *template.Template
-}
-
-type LinkDB struct {
-	db *sqlx.DB
-}
-
-func (l *LinkDB) GetLinks() ([]Link, error) {
-	links := []Link{}
-	if err := l.db.Select(&links,
-		"SELECT * FROM links ORDER BY weight DESC, link_id ASC;"); err != nil {
-		return nil, err
-	}
-
-	return links, nil
-}
-
-func (l *LinkDB) UpdateWeight(id int, action string) error {
-	var queryAction string
-	switch action {
-	case "up":
-		queryAction = "+ 1"
-	case "down":
-		queryAction = "- 1"
-	default:
-		return fmt.Errorf("unsupported action: %s", action)
-	}
-
-	res, err := l.db.Exec("UPDATE links set weight = weight " + queryAction + " where link_id = " + strconv.Itoa(id) + ";")
-	if err != nil {
-		return err
-	}
-
-	if c, _ := res.RowsAffected(); c == 0 {
-		return fmt.Errorf("item not found: %d", id)
-	}
-
-	return nil
-}
-
-func (l *LinkDB) InsertLink(text, url, imageURL string) error {
-	query := `INSERT INTO links (message, url, image_url) VALUES (?, ?, ?);`
-
-	_, err := l.db.Exec(query, text, url, imageURL)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (l *LinkDB) UpdateLink(id int, text, url, image string) error {
-	query := `UPDATE links SET message=?, url=?, image_url=? WHERE link_id=?;`
-
-	_, err := l.db.Exec(query, text, url, image, id)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (l *LinkDB) DeleteLink(id int) error {
-	query := `DELETE FROM links where link_id = ?;`
-
-	_, err := l.db.Exec(query, id)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (l *LinkDB) IncrementHit(id int) error {
-	_, err := l.db.Exec("UPDATE links set hits = hits + 1 where link_id = " + strconv.Itoa(id) + ";")
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func initConfig(configFile string) Config {
