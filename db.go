@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
-	"os"
+	"io"
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
@@ -89,34 +87,13 @@ func (l *LinkDB) IncrementHit(id int) error {
 	return nil
 }
 
-func initDB(dbFilePath string) {
-	file, err := os.Create(dbFilePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	file.Close()
-
-	db, err := sqlx.Connect("sqlite", dbFilePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := execSchema(db); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := db.Close(); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func execSchema(db *sqlx.DB) error {
+func (app *App) execSchema() error {
 	schemaFile, err := setupFS.Open("schema.sql")
 	if err != nil {
 		return err
 	}
 
-	schema, err := ioutil.ReadAll(schemaFile)
+	schema, err := io.ReadAll(schemaFile)
 	if err != nil {
 		return err
 	}
@@ -125,7 +102,7 @@ func execSchema(db *sqlx.DB) error {
 		return err
 	}
 
-	if _, err := db.Exec(string(schema)); err != nil {
+	if _, err := app.DB.db.Exec(string(schema)); err != nil {
 		return err
 	}
 

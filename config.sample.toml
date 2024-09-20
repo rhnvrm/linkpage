@@ -3,7 +3,7 @@ read_timeout="3s"
 write_timeout="3s"
 dbfile="app.db"
 
-page_logo_url="/static/icon.png"
+page_logo_url="/static/app/img/icon.png"
 page_title="LinkPage"
 page_intro="Your friendly neighbourhood self-hostable FOSS link page."
 
