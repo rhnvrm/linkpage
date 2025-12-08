@@ -3,7 +3,7 @@ read_timeout="3s"
 write_timeout="3s"
 dbfile="app.db"
 
-page_logo_url="/static/icon.png"
+page_logo_url="/static/app/img/logos/logo-icon-only.png"
 page_title="LinkPage"
 page_intro="Your friendly neighbourhood self-hostable FOSS link page."
 
@@ -15,7 +15,8 @@ password="password"
 
 [social]
 facebook = ""
+github = "https://github.com/rhnvrm/linkpage"
 instagram = ""
-linkedin = ""
-twitter = ""
-youtube = ""
+linkedin = "https://linkedin.com/in/rhnvrm"
+twitter = "https://x.com/rhnvrm"
+youtube = "https://youtube.com/@TheRohanVerma"

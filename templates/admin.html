@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+    {{ template "header" . }}
+    <body>
+        <div class="page-wrapper admin-wrapper">
+            <header class="site-header admin-header">
+                <div class="header-logo">
+                    <a href="/" class="logo-link">
+                        <img src="{{.LogoURL}}" alt="{{.Title}}" class="logo-image">
+                    </a>
+                </div>
+                <div class="header-content">
+                    <h1 class="site-title">{{.Title}}</h1>
+                    <p class="site-tagline">{{.Intro}}</p>
+                    <div class="admin-badge">Admin Panel</div>
+                </div>
+            </header>
+
+            <main class="admin-content">
+                {{if .Error}}
+                <div class="notification error-notification">
+                    <span class="notification-icon">⚠</span>
+                    <span class="notification-text">{{.Error}}</span>
+                </div>
+                {{end}}
+                {{if .Success}}
+                <div class="notification success-notification">
+                    <span class="notification-icon">✓</span>
+                    <span class="notification-text">{{.Success}}</span>
+                </div>
+                {{end}}
+
+                <section class="admin-section new-link-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Create New Link</h2>
+                        <p class="section-subtitle">Add a new link to your page</p>
+                    </div>
+
+                    <form action="/admin/links/new" method="POST" class="admin-form">
+                        <div class="form-group form-group-split">
+                            <div class="form-input-group form-input-primary">
+                                <label for="url" class="form-label">URL*</label>
+                                <input class="form-input" placeholder="https://example.com" type="url" name="url"
+                                       {{ with .OGPURL }} value="{{.}}" {{ end }} required>
+                            </div>
+                            <div class="form-input-group">
+                                <label class="form-label" style="opacity: 0;">Action</label>
+                                <button type="submit" name="submit" value="Fetch Data" class="btn btn-secondary">Fetch Metadata</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="text" class="form-label">Title*</label>
+                            <input class="form-input" placeholder="Link Title" type="text" name="text"
+                                   {{ with .OGPDesc }} value="{{.}}" {{ end }}>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-input form-textarea" placeholder="Brief description of the link" name="description">{{ with .OGPDescription }}{{.}}{{ end }}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="image_url" class="form-label">Image URL</label>
+                            <input class="form-input" placeholder="https://example.com/image.jpg" type="url" name="image_url"
+                                   {{ with .OGPImage }} value="{{.}}" {{ end }}>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" name="submit" value="Submit" class="btn btn-primary" onclick="return validateCreateForm(event)">Create Link</button>
+                        </div>
+                    </form>
+                </section>
+
+                <div class="section-divider"></div>
+
+                <section class="admin-section links-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Manage Links</h2>
+                        <p class="section-subtitle">Edit, reorder, and delete your links</p>
+                    </div>
+
+                    <div class="links-grid">
+                        {{ range .Links }}
+                        <article class="link-manager-card">
+                            <div class="link-preview">
+                                <div class="link-preview-header">
+                                    <div class="link-preview-content">
+                                        {{if .ImageURL}}
+                                        <div class="link-preview-thumbnail">
+                                            <img src="{{.ImageURL}}" alt="{{.Text}}" loading="lazy">
+                                        </div>
+                                        {{else}}
+                                        <div class="link-preview-thumbnail link-preview-placeholder"></div>
+                                        {{end}}
+                                        <div class="link-preview-text">
+                                            <h3 class="link-preview-title">{{ .Text }}</h3>
+                                            {{if .Description}}
+                                            <p class="link-preview-description">{{ .Description }}</p>
+                                            {{end}}
+                                        </div>
+                                    </div>
+                                    <div class="link-stats-badge">
+                                        <span class="stats-number">{{.Hits}}</span>
+                                        <span class="stats-label">clicks</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="link-actions-bar">
+                                <div class="link-order-controls">
+                                    <a href="/admin/links/{{.ID}}/weight?action=up" class="action-btn action-btn-icon" title="Move up">
+                                        ↑
+                                    </a>
+                                    <span class="order-weight">{{.Weight}}</span>
+                                    <a href="/admin/links/{{.ID}}/weight?action=down" class="action-btn action-btn-icon" title="Move down">
+                                        ↓
+                                    </a>
+                                </div>
+                                <a href="/admin/links/{{.ID}}/delete" class="action-btn action-btn-delete" onclick="return confirm('Delete this link?')">
+                                    Delete
+                                </a>
+                            </div>
+
+                            <form action="/admin/links/{{.ID}}/update" method="POST" class="link-edit-form">
+                                <div class="form-group">
+                                    <label for="text" class="form-label">Title</label>
+                                    <input class="form-input" name="text" value="{{ .Text }}" type="text" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-input form-textarea" name="description">{{ .Description }}</textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="url" class="form-label">URL</label>
+                                    <input class="form-input" name="url" value="{{ .URL }}" type="url" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="image_url" class="form-label">Image URL</label>
+                                    <input class="form-input" name="image_url" value="{{ .ImageURL }}" type="url">
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Update Link</button>
+                                </div>
+                            </form>
+                        </article>
+                        {{ end }}
+                    </div>
+                </section>
+            </main>
+
+
+        </div>
+        <script>
+            function validateCreateForm(event) {
+                const form = event.target.form;
+                const url = form.querySelector('input[name="url"]').value.trim();
+                const text = form.querySelector('input[name="text"]').value.trim();
+
+                if (!url) {
+                    alert('URL is required');
+                    return false;
+                }
+
+                if (!text) {
+                    alert('Title is required');
+                    return false;
+                }
+
+                return true;
+            }
+        </script>
+    </body>
+</html>
