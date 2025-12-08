@@ -21,6 +21,13 @@ func NewApp(cfg Config) (*App, error) {
 		return nil, err
 	}
 
+	// Create template functions
+	funcMap := template.FuncMap{
+		"multiply": func(a int, b float64) float64 {
+			return float64(a) * b
+		},
+	}
+
 	app := &App{
 		Data: Page{
 			LogoURL: cfg.PageLogoURL,
@@ -31,8 +38,8 @@ func NewApp(cfg Config) (*App, error) {
 		DB: &LinkDB{db},
 		Templates: Templates{
 			Home: newCachedTemplate(
-				template.Must(template.ParseFS(templateFS, "templates/home.html", "templates/utils.html"))),
-			Admin: template.Must(template.ParseFS(templateFS, "templates/admin.html", "templates/utils.html")),
+				template.Must(template.New("home.html").Funcs(funcMap).ParseFS(templateFS, "templates/home.html", "templates/utils.html"))),
+			Admin: template.Must(template.New("admin.html").Funcs(funcMap).ParseFS(templateFS, "templates/admin.html", "templates/utils.html")),
 		},
 	}
 

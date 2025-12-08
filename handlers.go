@@ -149,6 +149,7 @@ func (app *App) HandleAdminUpdate(w http.ResponseWriter, r *http.Request) {
 
 	text := r.Form.Get("text")
 	url := r.Form.Get("url")
+	description := r.Form.Get("description")
 	imageURL := r.Form.Get("image_url")
 
 	if url == "" {
@@ -159,12 +160,8 @@ func (app *App) HandleAdminUpdate(w http.ResponseWriter, r *http.Request) {
 		app.renderAdminPageWithErrMessage("text is missing", app.Data)(w, r)
 		return
 	}
-	if imageURL == "" {
-		app.renderAdminPageWithErrMessage("image_url is missing", app.Data)(w, r)
-		return
-	}
 
-	if err := app.DB.UpdateLink(id, text, url, imageURL); err != nil {
+	if err := app.DB.UpdateLink(id, text, description, url, imageURL); err != nil {
 		app.renderAdminPageWithErrMessage(
 			fmt.Sprintf("error while updating link: %v", err),
 			app.Data)(w, r)
@@ -186,11 +183,13 @@ func (app *App) HandleAdminNew(w http.ResponseWriter, r *http.Request) {
 
 	text := r.Form.Get("text")
 	url := r.Form.Get("url")
+	description := r.Form.Get("description")
 	imageURL := r.Form.Get("image_url")
 	submitType := r.Form.Get("submit")
 
 	if url == "" {
 		app.renderAdminPageWithErrMessage("url is missing", app.Data)(w, r)
+		return
 	}
 
 	if submitType == "Fetch Data" {
@@ -210,6 +209,7 @@ func (app *App) HandleAdminNew(w http.ResponseWriter, r *http.Request) {
 		p := app.Data
 		p.OGPImage = imageURL
 		p.OGPDesc = ogp.Title
+		p.OGPDescription = ogp.Description
 		p.OGPURL = url
 		app.renderAdminPage(p)(w, r)
 		return
@@ -217,6 +217,7 @@ func (app *App) HandleAdminNew(w http.ResponseWriter, r *http.Request) {
 
 	if text == "" {
 		app.renderAdminPageWithErrMessage("text is missing", app.Data)(w, r)
+		return
 	}
 
 	if imageURL == "" {
@@ -234,7 +235,7 @@ func (app *App) HandleAdminNew(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := app.DB.InsertLink(text, url, imageURL); err != nil {
+	if err := app.DB.InsertLink(text, description, url, imageURL); err != nil{
 		app.renderAdminPageWithErrMessage(
 			fmt.Sprintf("error while inserting link: %v", err),
 			app.Data)(w, r)

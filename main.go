@@ -82,6 +82,11 @@ func runApp(configFilePath string) {
 		}
 	}
 
+	// Run migrations to ensure schema is up to date (after we know table exists)
+	if err := app.DB.runMigrations(); err != nil {
+		log.Printf("migration warning: %v", err)
+	}
+
 	r := mux.NewRouter()
 	admin := mux.NewRouter().PathPrefix("/admin").Subrouter().StrictSlash(true)
 	r.PathPrefix("/admin").Handler(negroni.New(
