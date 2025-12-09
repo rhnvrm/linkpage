@@ -143,7 +143,8 @@ go build -o linkpage.bin
 
 ## Websites Using LinkPage
 
-- [links.zrd.sh](https://links.zrd.sh) - Zerodha Tech Links
+- [links.zrd.sh](https://links.zrd.sh) - Zerodha Links
+- [varsity.zrd.sh](https://varsity.zrd.sh/) - Zerodha Varsity Links
 
 *Using LinkPage? [Submit a PR](https://github.com/rhnvrm/linkpage/pulls) to add your site!*
 
