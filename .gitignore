@@ -8,3 +8,5 @@ dist/
 config.toml
 static/custom/*
 linkpage
+result
+app.db
