@@ -7,3 +7,4 @@ tmp/
 dist/
 config.toml
 static/custom/*
+linkpage

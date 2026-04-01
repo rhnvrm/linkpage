@@ -1,0 +1,27 @@
+[[links]]
+url = "https://rohanverma.net"
+message = "Personal Website"
+description = "Blog, projects, and digital garden"
+image_url = ""
+weight = 100
+
+[[links]]
+url = "https://github.com/rhnvrm"
+message = "GitHub"
+description = "Open source projects"
+image_url = ""
+weight = 90
+
+[[links]]
+url = "https://oddship.net"
+message = "Oddship"
+description = "Builder's log — we rebuild ourselves at sea"
+image_url = ""
+weight = 80
+
+[[links]]
+url = "https://x.com/rhnvrm"
+message = "Twitter / X"
+description = "Thoughts and updates"
+image_url = ""
+weight = 70

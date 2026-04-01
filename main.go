@@ -25,10 +25,12 @@ var setupFS embed.FS
 var (
 	appMode        = "run_app"
 	configFilePath = "config.toml"
+	seedFilePath   = ""
 )
 
 func init() {
 	flag.StringVar(&configFilePath, "config", "config.toml", "path to config file")
+	flag.StringVar(&seedFilePath, "seed", "", "path to seed TOML file (declarative mode: clears and reseeds links on startup)")
 	initApp := flag.Bool("init", false, "app initialization, creates a db and config file in current dir")
 
 	flag.Parse()
@@ -85,6 +87,14 @@ func runApp(configFilePath string) {
 	// Run migrations to ensure schema is up to date (after we know table exists)
 	if err := app.DB.runMigrations(); err != nil {
 		log.Printf("migration warning: %v", err)
+	}
+
+	// If seed file is provided, apply declarative seed
+	if seedFilePath != "" {
+		if err := app.applySeed(seedFilePath); err != nil {
+			log.Fatalf("error applying seed file: %v", err)
+		}
+		log.Printf("applied seed file: %s", seedFilePath)
 	}
 
 	r := mux.NewRouter()
