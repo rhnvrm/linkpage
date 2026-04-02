@@ -22,6 +22,8 @@ A beautiful, self-hosted link-in-bio page built with Go. A FOSS alternative to L
 - **Basic Auth Protected** - Secure admin endpoints out of the box
 - **Social Icons** - Integrated social media links with beautiful icons
 - **Simple SQLite Setup** - No complex database configuration required
+- **Declarative Mode** - Define links in a TOML seed file; DB becomes a cache of config
+- **Nix Flake** - Build with `nix build`, deploy with NixOS module
 - **Customizable** - Add custom CSS and branding to match your style
 
 ## Screenshots
@@ -75,6 +77,19 @@ docker run -v linkpage:/linkpage -p 8000:8000 rhnvrm/linkpage:latest ./linkpage
 
 Your LinkPage will be available at `http://localhost:8000`
 
+### Using Nix
+
+```bash
+# Build
+nix build github:rhnvrm/linkpage
+
+# Run
+./result/bin/linkpage --config config.toml
+
+# Run with declarative seed file
+./result/bin/linkpage --config config.toml --seed seed.toml
+```
+
 ### Configuration
 
 Edit `config.toml` to customize:
@@ -100,11 +115,69 @@ twitter = "https://x.com/yourusername"
 linkedin = "https://linkedin.com/in/yourusername"
 ```
 
+### Declarative Seed Mode
+
+Use `--seed <file.toml>` to manage links declaratively. On every startup, LinkPage clears the database and inserts links from the seed file. This makes the DB a cache of your config — perfect for infrastructure-as-code deployments.
+
+```toml
+# seed.toml
+[[links]]
+url = "https://rohanverma.net"
+message = "Personal Website"
+description = "Blog, projects, and digital garden"
+image_url = ""
+weight = 100
+
+[[links]]
+url = "https://github.com/rhnvrm"
+message = "GitHub"
+description = "Open source projects"
+image_url = ""
+weight = 90
+```
+
+The admin panel still works — but in seed mode, any manual changes will be overwritten on the next restart.
+
+### NixOS Module
+
+The flake exports a NixOS module for declarative multi-instance deployment:
+
+```nix
+# flake.nix inputs
+inputs.linkpage.url = "github:rhnvrm/linkpage";
+
+# configuration.nix
+{ inputs, ... }:
+{
+  imports = [ inputs.linkpage.nixosModules.default ];
+
+  services.linkpage.instances.mylinks = {
+    enable = true;
+    port = 8001;
+    pageTitle = "Your Name";
+    pageIntro = "Your tagline";
+    social = {
+      github = "https://github.com/yourusername";
+      twitter = "https://x.com/yourusername";
+    };
+    links = [
+      { url = "https://example.com"; message = "My Website"; description = "Personal site"; weight = 100; }
+      { url = "https://github.com/you"; message = "GitHub"; weight = 90; }
+    ];
+    auth = {
+      username = "admin";
+      password = "changeme";
+    };
+  };
+}
+```
+
+Each instance gets its own systemd service, state directory (`/var/lib/linkpage-<name>/`), and generated config.
+
 ## Development Setup
 
 ### Prerequisites
-- Go 1.19 or higher
-- SQLite3
+- Go 1.21 or higher (uses `modernc.org/sqlite`, no CGO needed)
 
 ### Steps
 
@@ -114,23 +187,19 @@ linkedin = "https://linkedin.com/in/yourusername"
    cd linkpage
    ```
 
-2. **Initialize the database**
-   ```bash
-   sqlite3 app.db < schema.sql
-   ```
-
-3. **Copy and edit the config**
+2. **Copy and edit the config**
    ```bash
    cp config.sample.toml config.toml
    # Edit config.toml with your preferred editor
    ```
 
-4. **Run the application**
+3. **Run the application**
    ```bash
    go run .
    ```
+   The database is created automatically on first run.
 
-5. **Access the admin panel**
+4. **Access the admin panel**
    - Navigate to `http://localhost:8000/admin`
    - Add your links and customize your page
 
