@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/knadh/koanf"
@@ -27,8 +30,9 @@ type Config struct {
 }
 
 type CfgAuth struct {
-	Username string `koanf:"username"`
-	Password string `koanf:"password"`
+	Username     string `koanf:"username"`
+	Password     string `koanf:"password"`
+	PasswordFile string `koanf:"password_file"`
 }
 
 func initConfig(configFile string) Config {
@@ -45,5 +49,27 @@ func initConfig(configFile string) Config {
 		log.Fatalf("error while unmarshalling config: %v", err)
 	}
 
+	if err := config.resolveSecrets(); err != nil {
+		log.Fatalf("error resolving config secrets: %v", err)
+	}
+
 	return config
+}
+
+func (c *Config) resolveSecrets() error {
+	if c.Auth.PasswordFile == "" {
+		return nil
+	}
+
+	password, err := os.ReadFile(c.Auth.PasswordFile)
+	if err != nil {
+		return fmt.Errorf("reading auth.password_file %q: %w", c.Auth.PasswordFile, err)
+	}
+
+	c.Auth.Password = strings.TrimRight(string(password), "\r\n")
+	if c.Auth.Password == "" {
+		return fmt.Errorf("auth.password_file %q was empty", c.Auth.PasswordFile)
+	}
+
+	return nil
 }

@@ -12,6 +12,7 @@ static_files = "static/custom"
 [auth]
 username="username"
 password="password"
+# password_file = "/run/secrets/linkpage-admin-password" # preferred for systemd/NixOS deployments
 
 [social]
 facebook = ""

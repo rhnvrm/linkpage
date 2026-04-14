@@ -107,6 +107,7 @@ page_logo_url = "/static/app/img/logos/logo-icon-only.png"
 [auth]
 username = "your-username"
 password = "your-secure-password"
+# password_file = "/run/secrets/linkpage-admin-password"
 
 # Social links
 [social]
@@ -115,9 +116,11 @@ twitter = "https://x.com/yourusername"
 linkedin = "https://linkedin.com/in/yourusername"
 ```
 
+For local configs, inline `auth.password` is fine. For systemd/NixOS deployments, prefer `auth.password_file` so the secret stays out of the Nix store and your repo.
+
 ### Declarative Seed Mode
 
-Use `--seed <file.toml>` to manage links declaratively. On every startup, LinkPage clears the database and inserts links from the seed file. This makes the DB a cache of your config — perfect for infrastructure-as-code deployments.
+Use `--seed <file.toml>` to manage links declaratively. On every startup, LinkPage replaces the database contents with the links from the seed file. This makes the DB a cache of your config — perfect for infrastructure-as-code deployments.
 
 ```toml
 # seed.toml
@@ -138,6 +141,11 @@ weight = 90
 
 The admin panel still works — but in seed mode, any manual changes will be overwritten on the next restart.
 
+Operational notes:
+- Seed mode is destructive by design. Back up `app.db` before switching an existing instance from admin-managed mode to declarative mode.
+- An empty seed is valid and clears all links.
+- A safe migration path is: back up `app.db`, export or rewrite the current links into `seed.toml`, start once with `--seed`, then treat the database as runtime state rather than source of truth.
+
 ### NixOS Module
 
 The flake exports a NixOS module for declarative multi-instance deployment:
@@ -147,7 +155,7 @@ The flake exports a NixOS module for declarative multi-instance deployment:
 inputs.linkpage.url = "github:rhnvrm/linkpage";
 
 # configuration.nix
-{ inputs, ... }:
+{ config, inputs, ... }:
 {
   imports = [ inputs.linkpage.nixosModules.default ];
 
@@ -160,17 +168,25 @@ inputs.linkpage.url = "github:rhnvrm/linkpage";
       github = "https://github.com/yourusername";
       twitter = "https://x.com/yourusername";
     };
+
+    declarative = true;
     links = [
       { url = "https://example.com"; message = "My Website"; description = "Personal site"; weight = 100; }
       { url = "https://github.com/you"; message = "GitHub"; weight = 90; }
     ];
+
     auth = {
       username = "admin";
-      password = "changeme";
+      passwordFile = config.age.secrets.linkpage-admin.path;
     };
   };
 }
 ```
+
+Notes:
+- `declarative = true` makes the generated seed authoritative on every restart, including `links = [ ]` if you want to clear the page.
+- The NixOS module writes generated config to the Nix store, so use `auth.passwordFile` with agenix, sops-nix, or another secret source instead of embedding passwords inline.
+- The module loads that secret through systemd credentials and gives LinkPage a readable runtime credential file, so `DynamicUser = true` remains compatible with secret-backed auth.
 
 Each instance gets its own systemd service, state directory (`/var/lib/linkpage-<name>/`), and generated config.
 

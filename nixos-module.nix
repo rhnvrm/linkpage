@@ -3,6 +3,7 @@ flake:
 
 let
   cfg = config.services.linkpage;
+  tomlFormat = pkgs.formats.toml { };
 
   linkOpts = lib.types.submodule {
     options = {
@@ -62,13 +63,23 @@ let
 
       social = lib.mkOption {
         type = lib.types.attrsOf lib.types.str;
-        default = {};
+        default = { };
         description = "Social media links (key = platform, value = URL)";
+      };
+
+      declarative = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Manage links declaratively via a generated seed file. When enabled,
+          LinkPage replaces database links on every startup, including an empty
+          list to intentionally clear all links.
+        '';
       };
 
       links = lib.mkOption {
         type = lib.types.listOf linkOpts;
-        default = [];
+        default = [ ];
         description = "Declarative link entries";
       };
 
@@ -78,10 +89,14 @@ let
           default = "admin";
           description = "Admin panel username";
         };
-        password = lib.mkOption {
-          type = lib.types.str;
-          default = "changeme";
-          description = "Admin panel password";
+        passwordFile = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = ''
+            Path to a runtime secret file containing the admin password.
+            Use agenix, sops-nix, or another secret manager. The module writes
+            only this path to the Nix store, never the password itself.
+          '';
         };
       };
 
@@ -93,40 +108,33 @@ let
     };
   };
 
-  # Generate config.toml for an instance
-  mkConfigToml = name: inst: pkgs.writeText "linkpage-${name}-config.toml" ''
-    http_address = "127.0.0.1:${toString inst.port}"
-    read_timeout = "3s"
-    write_timeout = "3s"
-    dbfile = "/var/lib/linkpage-${name}/app.db"
+  credentialName = "linkpage-admin-password";
+  passwordFilePlaceholder = "__LINKPAGE_PASSWORD_FILE__";
 
-    page_logo_url = "${inst.pageLogoUrl}"
-    page_title = "${inst.pageTitle}"
-    page_intro = "${inst.pageIntro}"
+  mkConfigToml = name: inst:
+    tomlFormat.generate "linkpage-${name}-config.toml" ({
+      http_address = "127.0.0.1:${toString inst.port}";
+      read_timeout = "3s";
+      write_timeout = "3s";
+      dbfile = "/var/lib/linkpage-${name}/app.db";
+      page_logo_url = inst.pageLogoUrl;
+      page_title = inst.pageTitle;
+      page_intro = inst.pageIntro;
+      static_files = "";
+      auth = {
+        username = inst.auth.username;
+        password_file = passwordFilePlaceholder;
+      };
+    } // lib.optionalAttrs (inst.social != { }) {
+      social = inst.social;
+    });
 
-    static_files = ""
+  mkSeedToml = name: inst:
+    tomlFormat.generate "linkpage-${name}-seed.toml" {
+      links = inst.links;
+    };
 
-    [auth]
-    username = "${inst.auth.username}"
-    password = "${inst.auth.password}"
-
-    ${lib.optionalString (inst.social != {}) ''
-    [social]
-    ${lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: ''${k} = "${v}"'') inst.social)}
-    ''}
-  '';
-
-  # Generate seed.toml for an instance
-  mkSeedToml = name: inst: pkgs.writeText "linkpage-${name}-seed.toml" (
-    lib.concatStringsSep "\n" (map (link: ''
-      [[links]]
-      url = "${link.url}"
-      message = "${link.message}"
-      description = "${link.description}"
-      image_url = "${link.image_url}"
-      weight = ${toString link.weight}
-    '') inst.links)
-  );
+  shouldSeed = inst: inst.declarative || inst.links != [ ];
 
   enabledInstances = lib.filterAttrs (_: inst: inst.enable) cfg.instances;
 
@@ -135,27 +143,42 @@ in
   options.services.linkpage = {
     instances = lib.mkOption {
       type = lib.types.attrsOf (lib.types.submodule instanceOpts);
-      default = {};
+      default = { };
       description = "LinkPage instances";
     };
   };
 
-  config = lib.mkIf (enabledInstances != {}) {
+  config = lib.mkIf (enabledInstances != { }) {
+    assertions = lib.mapAttrsToList (name: inst: {
+      assertion = inst.auth.passwordFile != null;
+      message = "services.linkpage.instances.${name}.auth.passwordFile must be set to a runtime secret path";
+    }) enabledInstances;
+
     systemd.services = lib.mapAttrs' (name: inst:
       lib.nameValuePair "linkpage-${name}" {
         description = "LinkPage - ${name}";
         after = [ "network.target" ];
         wantedBy = [ "multi-user.target" ];
 
-        serviceConfig = {
+        serviceConfig = let
+          configFile = mkConfigToml name inst;
+          seedArgs = lib.optionalString (shouldSeed inst)
+            " --seed ${mkSeedToml name inst}";
+          startScript = pkgs.writeShellScript "linkpage-${name}-start" ''
+            runtime_config="$RUNTIME_DIRECTORY/config.toml"
+            ${pkgs.gnused}/bin/sed \
+              "s#${passwordFilePlaceholder}#$CREDENTIALS_DIRECTORY/${credentialName}#g" \
+              ${configFile} > "$runtime_config"
+            exec ${inst.package}/bin/linkpage --config "$runtime_config"${seedArgs}
+          '';
+        in {
           Type = "simple";
           DynamicUser = true;
           StateDirectory = "linkpage-${name}";
-          ExecStart = let
-            configFile = mkConfigToml name inst;
-            seedArgs = lib.optionalString (inst.links != [])
-              " --seed ${mkSeedToml name inst}";
-          in "${inst.package}/bin/linkpage --config ${configFile}${seedArgs}";
+          RuntimeDirectory = "linkpage-${name}";
+          RuntimeDirectoryMode = "0700";
+          LoadCredential = "${credentialName}:${inst.auth.passwordFile}";
+          ExecStart = startScript;
           Restart = "on-failure";
           RestartSec = 5;
 
