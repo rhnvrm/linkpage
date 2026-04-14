@@ -1,27 +1,29 @@
+version: 2
+
 env:
   - CGO_ENABLED=0
 
-before:
-  hooks:
-    # You may remove this if you don't use go modules.
-    - go mod tidy
-
 builds:
-  - env:
+  - id: linkpage
     goos:
       - linux
       - darwin
 
 archives:
-  - format: tar.gz
+  - ids:
+      - linkpage
+    formats:
+      - tar.gz
     files:
       - README.md
       - LICENSE
 
 checksum:
   name_template: "checksums.txt"
+
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  version_template: "{{ incpatch .Version }}-next"
+
 changelog:
   sort: asc
   filters:
@@ -29,14 +31,16 @@ changelog:
       - "^docs:"
       - "^test:"
 
-dockers:
-  - goos: linux
-    goarch: amd64
-    ids:
+dockers_v2:
+  - ids:
       - linkpage
-    image_templates:
-      - "rhnvrm/linkpage:latest"
-      - "rhnvrm/linkpage:{{ .Tag }}"
+    images:
+      - "rhnvrm/linkpage"
+    tags:
+      - latest
+      - "{{ .Tag }}"
     dockerfile: Dockerfile
     extra_files:
       - config.sample.toml
+    platforms:
+      - linux/amd64

@@ -1,7 +1,8 @@
 FROM alpine:latest
-MAINTAINER Rohan Verma <hello@rohanverma.net>
+LABEL org.opencontainers.image.authors="Rohan Verma <hello@rohanverma.net>"
 RUN apk --no-cache add ca-certificates
 WORKDIR /linkpage
-COPY linkpage .
+ARG TARGETPLATFORM
+COPY ${TARGETPLATFORM}/linkpage ./linkpage
 COPY config.sample.toml config.toml
 CMD ["./linkpage"]
