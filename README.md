@@ -10,6 +10,9 @@
 
 A beautiful, self-hosted link-in-bio page built with Go. A FOSS alternative to LinkTree, Linktree, and Campsite.bio with a focus on simplicity, performance, and design.
 
+Documentation: <https://rhnvrm.github.io/linkpage/>  
+Docs source: [`docs/`](docs/)
+
 ## Features
 
 - **Beautiful Editorial Design** - Professional, magazine-inspired aesthetic with clean typography
@@ -45,6 +48,9 @@ A beautiful, self-hosted link-in-bio page built with Go. A FOSS alternative to L
 *Intuitive admin interface with link management, click tracking, and metadata fetching*
 
 ## Quick Start
+
+For fuller guides, including declarative seed mode, NixOS deployment, and release/deploy notes, see the docs site: <https://rhnvrm.github.io/linkpage/>.
+
 
 ### Using Pre-built Binary
 
@@ -148,7 +154,8 @@ Operational notes:
 
 ### NixOS Module
 
-The flake exports a NixOS module for declarative multi-instance deployment:
+The flake exports a NixOS module for declarative multi-instance deployment. For the full guide, see <https://rhnvrm.github.io/linkpage/guide/nixos-module/>.
+
 
 ```nix
 # flake.nix inputs
