@@ -5,6 +5,8 @@ tmp/
 *.db
 *.bin
 dist/
+static/app/vendor/
+!static/app/dist/
 config.toml
 static/custom/*
 linkpage

@@ -1,0 +1,220 @@
+/* LinkPage theme overlay on Oat UI.
+ * Component styles come from oat.min.css (https://oat.ink); this file only
+ * handles LinkPage layout, branding, and page-specific tweaks.
+ * Source: src/css/app.css -> dist/app.css (via esgun.config.json copies). */
+
+:root {
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+}
+
+body {
+  background: var(--background);
+}
+
+.page-wrapper {
+  max-width: 46rem;
+  margin-inline: auto;
+  padding-inline: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* --- Header --- */
+
+.site-header {
+  text-align: center;
+  padding-block: var(--space-10) var(--space-6);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-header .logo-image {
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: var(--space-4);
+}
+
+.site-header .site-title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: var(--text-1);
+  margin: 0;
+}
+
+.site-header .site-tagline {
+  color: var(--muted-foreground);
+  margin-block: var(--space-3) 0;
+}
+
+.site-header .badge {
+  margin-top: var(--space-4);
+}
+
+/* --- Link cards (home page) --- */
+
+.link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--space-5);
+  padding-block: var(--space-8) var(--space-10);
+}
+
+.link-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+  animation: card-in 300ms ease backwards;
+}
+
+.link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.08));
+}
+
+.link-card .card-thumbnail {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-medium);
+}
+
+.link-card-body {
+  margin-top: var(--space-4);
+}
+
+.link-card-title {
+  font-size: var(--text-2);
+  margin: 0;
+}
+
+.link-card-description {
+  color: var(--muted-foreground);
+  margin: var(--space-2) 0 0;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Footer --- */
+
+.site-footer {
+  margin-top: auto;
+  padding-block: var(--space-6) var(--space-8);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.social-links {
+  justify-content: center;
+  gap: var(--space-5);
+}
+
+.social-icon {
+  color: var(--muted-foreground);
+  display: inline-flex;
+  transition: color 120ms ease;
+}
+
+.social-icon:hover {
+  color: var(--accent);
+}
+
+.footer-credit {
+  color: var(--faint-foreground);
+  font-size: var(--text-small);
+  margin-top: var(--space-4);
+}
+
+.linkpage-link {
+  color: var(--accent);
+}
+
+/* --- Admin --- */
+
+.admin-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding-block-end: var(--space-10);
+}
+
+.admin-section > header {
+  margin-bottom: var(--space-5);
+}
+
+.admin-section > header h2 {
+  margin: 0;
+}
+
+.admin-section > header p {
+  color: var(--muted-foreground);
+  margin-top: var(--space-2);
+}
+
+.admin-section form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.form-row {
+  display: flex;
+  gap: var(--space-4);
+  align-items: end;
+}
+
+.form-row > label {
+  flex: 1;
+}
+
+.link-manager-card {
+  margin-bottom: var(--space-5);
+}
+
+.link-manager-card form {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.link-manager-header h3 {
+  margin: 0;
+}
+
+.link-manager-actions {
+  justify-content: space-between;
+  margin-top: var(--space-4);
+}
+
+.action-btn {
+  color: var(--muted-foreground);
+  text-decoration: none;
+  font-size: var(--text-regular);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-small);
+  border: 1px solid var(--border);
+}
+
+.action-btn:hover {
+  color: var(--foreground);
+  border-color: var(--ring);
+}
+
+.action-btn.danger {
+  color: var(--danger);
+}
+
+.order-weight {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+}

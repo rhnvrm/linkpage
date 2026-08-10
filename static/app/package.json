@@ -1,0 +1,11 @@
+{
+  "name": "linkpage-frontend",
+  "private": true,
+  "dependencies": {
+    "@knadh/oat": "^0.7.1"
+  },
+  "scripts": {
+    "build": "esgun build",
+    "watch": "esgun watch"
+  }
+}

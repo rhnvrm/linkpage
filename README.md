@@ -200,7 +200,8 @@ Each instance gets its own systemd service, state directory (`/var/lib/linkpage-
 ## Development Setup
 
 ### Prerequisites
-- Go 1.21 or higher (uses `modernc.org/sqlite`, no CGO needed)
+- Go 1.25 or higher (uses `modernc.org/sqlite`, no CGO needed)
+- The frontend (Oat UI + LinkPage overlay) is built by [esgun](https://github.com/oddship/esgun), pinned as a Go tool dependency in `go.mod` (`go tool esgun`). No node/npm/bun required. The built assets are committed under `static/app/dist/`, so a plain `go build` works out of the box.
 
 ### Steps
 
@@ -232,6 +233,16 @@ Each instance gets its own systemd service, state directory (`/var/lib/linkpage-
 go build -o linkpage.bin
 ./linkpage.bin
 ```
+
+### Rebuilding the Frontend
+
+The admin + home pages are styled with [Oat UI](https://oat.ink) and a small LinkPage overlay (`static/app/src/`). To rebuild the bundled assets:
+
+```bash
+make frontend   # = go tool esgun deps/build --dir static/app
+```
+
+This re-resolves `@knadh/oat` from npm (sha512-verified, `package-lock.json` v3) and assembles `static/app/dist/`.
 
 ## Websites Using LinkPage
 

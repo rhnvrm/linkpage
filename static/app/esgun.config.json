@@ -1,0 +1,24 @@
+{
+  "root": "dist",
+  "outdir": "dist/js",
+  "resolve": [
+    "vendor/node_modules"
+  ],
+  "entry": [
+    "src/js/app.js"
+  ],
+  "copies": [
+    {
+      "from": "vendor/node_modules/@knadh/oat/oat.min.css",
+      "to": "dist/oat.min.css"
+    },
+    {
+      "from": "vendor/node_modules/@knadh/oat/oat.min.js",
+      "to": "dist/oat.min.js"
+    },
+    {
+      "from": "src/css/app.css",
+      "to": "dist/app.css"
+    }
+  ]
+}

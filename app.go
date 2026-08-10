@@ -26,6 +26,7 @@ func NewApp(cfg Config) (*App, error) {
 		"multiply": func(a int, b float64) float64 {
 			return float64(a) * b
 		},
+		"icon": icon,
 	}
 
 	app := &App{

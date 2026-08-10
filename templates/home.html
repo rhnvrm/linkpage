@@ -2,78 +2,42 @@
 <html lang="en">
     {{ template "header" . }}
     <body>
-        <div class="page-wrapper">
+        <div class="container page-wrapper">
             <header class="site-header">
-                <div class="header-logo">
-                    <a href="/" class="logo-link">
-                        <img src="{{.LogoURL}}" alt="{{.Title}}" class="logo-image">
-                    </a>
-                </div>
-                <div class="header-content">
-                    <h1 class="site-title">{{.Title}}</h1>
-                    <p class="site-tagline">{{.Intro}}</p>
-                </div>
+                <img src="{{.LogoURL}}" alt="{{.Title}}" class="logo-image">
+                <h1 class="site-title">{{.Title}}</h1>
+                <p class="site-tagline">{{.Intro}}</p>
             </header>
 
-            <main class="content-grid">
+            <main class="link-grid">
                 {{ range $index, $link := .Links }}
-                <article class="link-card" style="animation-delay: {{multiply $index 0.08}}s">
-                    <a href="{{$link.URL}}" class="card-link" target="_blank" onclick="return recordHit({{$link.ID}})">
-                        <div class="card-media">
-                            {{if $link.ImageURL}}
-                                <img src="{{$link.ImageURL}}" alt="{{$link.Text}}" class="card-thumbnail" loading="lazy">
-                            {{else}}
-                                <div class="card-thumbnail-placeholder"></div>
-                            {{end}}
-                        </div>
-                        <div class="card-body">
-                            <h2 class="card-title">{{$link.Text}}</h2>
-                            {{if $link.Description}}
-                                <p class="card-description">{{$link.Description}}</p>
-                            {{end}}
-                        </div>
-                    </a>
-                </article>
+                <a href="{{$link.URL}}" class="card link-card" style="animation-delay: {{multiply $index 0.08}}s"
+                   data-hit="{{$link.ID}}" target="_blank" rel="noopener">
+                    {{if $link.ImageURL}}
+                    <img src="{{$link.ImageURL}}" alt="{{$link.Text}}" class="card-thumbnail" loading="lazy">
+                    {{end}}
+                    <div class="link-card-body">
+                        <h2 class="link-card-title">{{$link.Text}}</h2>
+                        {{if $link.Description}}
+                        <p class="link-card-description">{{$link.Description}}</p>
+                        {{end}}
+                    </div>
+                </a>
                 {{ end }}
             </main>
 
             <footer class="site-footer">
-                <div class="social-links">
+                <div class="hstack social-links">
                     {{ range $k, $v := .Social }}
                     {{ if ne $v "" }}
-                    <a href="{{$v}}" class="social-icon" aria-label="{{$k}}" rel="noopener noreferrer" target="_blank">
-                        <i data-feather="{{$k}}"></i>
-                    </a>
+                    <a href="{{$v}}" class="social-icon" aria-label="{{$k}}" rel="noopener noreferrer" target="_blank">{{ icon $k }}</a>
                     {{ end }}
                     {{ end }}
                 </div>
-
-                <div class="footer-credit">
-                    <span>Powered by</span> <a href="https://github.com/rhnvrm/linkpage" class="linkpage-link" target="_blank" rel="noopener noreferrer">LinkPage</a>
-                </div>
+                <p class="footer-credit">Powered by <a href="https://github.com/rhnvrm/linkpage" class="linkpage-link" target="_blank" rel="noopener noreferrer">LinkPage</a></p>
             </footer>
         </div>
 
-        <script>
-            async function fetchAsync(url) {
-                try {
-                    const response = await fetch(url);
-                    return await response.json();
-                } catch (error) {
-                    console.error('Failed to record hit:', error);
-                }
-            }
-
-            function recordHit(id) {
-                fetchAsync("/hits/" + id);
-                return true;
-            }
-        </script>
-        <script src="static/app/js/feather.min.js"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                feather.replace();
-            });
-        </script>
+        <script src="/static/app/dist/js/app.js" defer></script>
     </body>
 </html>
